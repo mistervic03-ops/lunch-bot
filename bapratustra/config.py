@@ -17,6 +17,7 @@ class Settings:
     slack_bot_token: str
     lunch_channel_id: str
     ops_channel_id: str
+    leaderboard_url: str
     google_spreadsheet_id: str
     google_service_account_file: Path
     timezone: ZoneInfo
@@ -120,6 +121,7 @@ def load_settings(*, dotenv_path: str | Path | None = None) -> Settings:
         slack_bot_token=_required("SLACK_BOT_TOKEN"),
         lunch_channel_id=_required("LUNCH_CHANNEL_ID"),
         ops_channel_id=_required("OPS_CHANNEL_ID"),
+        leaderboard_url=_required("BAPRATUSTRA_LEADERBOARD_URL"),
         google_spreadsheet_id=google.google_spreadsheet_id,
         google_service_account_file=google.google_service_account_file,
         timezone=timezone,

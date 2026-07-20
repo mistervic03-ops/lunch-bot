@@ -12,6 +12,7 @@ from bapratustra.recommendation import LunchOption
 NUMBER_REACTIONS = ("one", "two", "three")
 KST = ZoneInfo("Asia/Seoul")
 OPEN_LUNCH_SHEET_ACTION_ID = "open_lunch_sheet"
+OPEN_LEADERBOARD_ACTION_ID = "open_leaderboard"
 
 
 @dataclass(frozen=True)
@@ -60,7 +61,9 @@ def build_daily_message(recommendations: Sequence[LunchOption]) -> str:
     return "\n".join(lines)
 
 
-def _message_blocks(text: str, sheet_url: str) -> list[dict[str, Any]]:
+def _message_blocks(
+    text: str, sheet_url: str, leaderboard_url: str
+) -> list[dict[str, Any]]:
     return [
         {
             "type": "section",
@@ -78,6 +81,16 @@ def _message_blocks(text: str, sheet_url: str) -> list[dict[str, Any]]:
                     },
                     "url": sheet_url,
                     "action_id": OPEN_LUNCH_SHEET_ACTION_ID,
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "전당 둘러보기",
+                        "emoji": True,
+                    },
+                    "url": leaderboard_url,
+                    "action_id": OPEN_LEADERBOARD_ACTION_ID,
                 }
             ],
         },
@@ -91,8 +104,8 @@ def build_onboarding_message() -> str:
         "평일 오전 11시(KST)에 세 가지 점심 후보를 제시합니다.\n"
         "마음이 가는 후보의 1️⃣, 2️⃣, 3️⃣ 반응을 눌러주세요. "
         "여러 후보를 골라도 됩니다.\n"
-        "새 후보는 아래 버튼으로 누구나 보탤 수 있고, 누적 좋아요는 "
-        "시트의 ‘인기 메뉴’ 탭에서 확인할 수 있습니다."
+        "새 후보는 아래 버튼으로 누구나 보탤 수 있고, 누적 좋아요와 순위는 "
+        "‘밥라투스트라의 전당’에서 확인할 수 있습니다."
     )
 
 
@@ -102,6 +115,7 @@ def post_daily_message(
     recommendations: Sequence[LunchOption],
     *,
     sheet_url: str,
+    leaderboard_url: str,
     connection_test: bool = False,
 ) -> SlackPost:
     """Post one compact message without expanding map links into previews."""
@@ -111,7 +125,7 @@ def post_daily_message(
     response = client.chat_postMessage(
         channel=channel_id,
         text=text,
-        blocks=_message_blocks(text, sheet_url),
+        blocks=_message_blocks(text, sheet_url, leaderboard_url),
         unfurl_links=False,
         unfurl_media=False,
     )
@@ -123,14 +137,18 @@ def post_daily_message(
 
 
 def post_channel_onboarding(
-    client: Any, channel_id: str, *, sheet_url: str
+    client: Any,
+    channel_id: str,
+    *,
+    sheet_url: str,
+    leaderboard_url: str,
 ) -> SlackPost:
     """Post the one-time channel guide; pinning remains a manual admin action."""
     text = build_onboarding_message()
     response = client.chat_postMessage(
         channel=channel_id,
         text=text,
-        blocks=_message_blocks(text, sheet_url),
+        blocks=_message_blocks(text, sheet_url, leaderboard_url),
         unfurl_links=False,
         unfurl_media=False,
     )

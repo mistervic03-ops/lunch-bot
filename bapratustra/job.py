@@ -317,6 +317,7 @@ def run_daily_job(
             settings.lunch_channel_id,
             recommendations,
             sheet_url=settings.lunch_sheet_url,
+            leaderboard_url=settings.leaderboard_url,
         )
     except Exception as exc:
         return _failed(

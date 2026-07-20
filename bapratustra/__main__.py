@@ -107,6 +107,7 @@ def run_slack_connection_test() -> int:
         settings.lunch_channel_id,
         recommendations,
         sheet_url=settings.lunch_sheet_url,
+        leaderboard_url=settings.leaderboard_url,
         connection_test=True,
     )
     expected_reactions = add_candidate_reactions(
@@ -138,6 +139,7 @@ def post_onboarding() -> int:
         slack_client,
         settings.lunch_channel_id,
         sheet_url=settings.lunch_sheet_url,
+        leaderboard_url=settings.leaderboard_url,
     )
     try:
         pin_message(slack_client, post)

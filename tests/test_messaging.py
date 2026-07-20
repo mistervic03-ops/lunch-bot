@@ -103,6 +103,7 @@ def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None
         "C_TEST",
         recommendations,
         sheet_url="https://docs.google.com/sheet",
+        leaderboard_url="http://leaderboard.internal:8030/",
         connection_test=True,
     )
 
@@ -132,6 +133,16 @@ def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None
                         },
                         "url": "https://docs.google.com/sheet",
                         "action_id": "open_lunch_sheet",
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "전당 둘러보기",
+                            "emoji": True,
+                        },
+                        "url": "http://leaderboard.internal:8030/",
+                        "action_id": "open_leaderboard",
                     }
                 ],
             },
@@ -151,6 +162,7 @@ def test_post_daily_message_rejects_missing_slack_identifiers() -> None:
             "C_TEST",
             [LunchOption("가게", "메뉴")],
             sheet_url="https://docs.google.com/sheet",
+            leaderboard_url="http://leaderboard.internal:8030/",
         )
 
 
@@ -162,15 +174,26 @@ def test_post_channel_onboarding_explains_schedule_reactions_and_sheet() -> None
         client,
         "C_TEST",
         sheet_url="https://docs.google.com/sheet",
+        leaderboard_url="http://leaderboard.internal:8030/",
     )
 
     text = build_onboarding_message()
     assert post == SlackPost("C_TEST", "1.2")
     assert "평일 오전 11시(KST)" in text
     assert "여러 후보를 골라도" in text
-    assert "‘인기 메뉴’ 탭" in text
+    assert "‘밥라투스트라의 전당’" in text
     blocks = client.chat_postMessage.call_args.kwargs["blocks"]
     assert blocks[1]["elements"][0]["url"] == "https://docs.google.com/sheet"
+    assert blocks[1]["elements"][1] == {
+        "type": "button",
+        "text": {
+            "type": "plain_text",
+            "text": "전당 둘러보기",
+            "emoji": True,
+        },
+        "url": "http://leaderboard.internal:8030/",
+        "action_id": "open_leaderboard",
+    }
 
 
 def test_pin_message_uses_posted_channel_and_timestamp() -> None:

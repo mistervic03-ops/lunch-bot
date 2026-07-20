@@ -69,6 +69,7 @@ def test_slack_connection_test_posts_reactions_without_writing_log(
         slack_bot_token="xoxb-test",
         lunch_channel_id="C_TEST",
         lunch_sheet_url="https://docs.google.com/sheet",
+        leaderboard_url="http://leaderboard.internal:8030/",
     )
     result = LunchOptionsResult(
         options=(LunchOption("식당", "메뉴"),), issues=()
@@ -182,6 +183,7 @@ def test_post_onboarding_uses_configured_channel_and_sheet(monkeypatch, capsys) 
         slack_bot_token="xoxb-test",
         lunch_channel_id="C_LUNCH",
         lunch_sheet_url="https://docs.google.com/sheet",
+        leaderboard_url="http://leaderboard.internal:8030/",
     )
     client = object()
     calls = []
@@ -207,7 +209,10 @@ def test_post_onboarding_uses_configured_channel_and_sheet(monkeypatch, capsys) 
         (
             client,
             "C_LUNCH",
-            {"sheet_url": "https://docs.google.com/sheet"},
+            {
+                "sheet_url": "https://docs.google.com/sheet",
+                "leaderboard_url": "http://leaderboard.internal:8030/",
+            },
         )
     ]
     assert pins == [SlackPost("C_LUNCH", "123.456")]
@@ -221,6 +226,7 @@ def test_post_onboarding_reports_post_location_when_auto_pin_fails(
         slack_bot_token="xoxb-test",
         lunch_channel_id="C_LUNCH",
         lunch_sheet_url="https://docs.google.com/sheet",
+        leaderboard_url="http://leaderboard.internal:8030/",
     )
     monkeypatch.setattr(__main__, "load_settings", lambda: settings)
     monkeypatch.setattr(__main__, "WebClient", lambda token: object())

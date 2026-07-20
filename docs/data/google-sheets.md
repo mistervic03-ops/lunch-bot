@@ -13,7 +13,6 @@ Google Sheet는 초기 점심 추천 후보의 원본이자 구성원이 함께 
 ```text
 lunch_options          # 직원 공동 편집
 recommendation_log     # 봇 기록, 직원 읽기 전용
-인기 메뉴               # 수식 기반 누적 좋아요 리더보드, 직원 읽기 전용
 ```
 
 설정 탭은 필요성이 확인되기 전에는 추가하지 않는다.
@@ -122,31 +121,5 @@ recommendation_log     # 봇 기록, 직원 읽기 전용
 - 선택값이 없다는 이유로 유효한 행 전체를 제외하지 않는다.
 
 식당과 메뉴를 선택하는 자세한 규칙은 [`../features/daily-recommendation.md`](../features/daily-recommendation.md)를 따른다.
-
-## `인기 메뉴` 리더보드
-
-`인기 메뉴` 탭은 `recommendation_log`의 전체 기록을 `식당 + 메뉴`로 묶어 보여주는 읽기 전용 리더보드다. 현재 `lunch_options`에서 비활성화되거나 삭제된 메뉴도 과거 기록을 보존하기 위해 포함한다.
-
-| 순서 | 열 이름 | 설명 |
-|---:|---|---|
-| 1 | `순위` | 현재 정렬 결과의 1부터 시작하는 순위다. |
-| 2 | `식당` | 추천 당시 기록된 식당명이다. |
-| 3 | `메뉴` | 추천 당시 기록된 메뉴명이다. |
-| 4 | `누적 좋아요` | 해당 식당과 메뉴의 `좋아요 수` 합계다. |
-| 5 | `추천 등장 횟수` | 해당 식당과 메뉴가 추천 로그에 기록된 횟수다. |
-
-- 누적 좋아요 내림차순으로 정렬하고, 동률이면 식당명과 메뉴명 오름차순으로 순서를 고정한다.
-- `B1`의 `QUERY` 수식이 식당, 메뉴, 누적 좋아요와 추천 등장 횟수를 집계한다.
-- `A2`의 `ARRAYFORMULA`가 결과 행에 순위를 붙인다.
-- 좋아요 집계가 `recommendation_log`에 반영되면 별도 봇 쓰기 없이 자동으로 다시 계산된다.
-- 탭 전체는 기존 `recommendation_log`와 같은 소유자와 Service Account만 수정할 수 있게 보호한다.
-- 리더보드는 인기 현황을 보여줄 뿐 일일 공정 순환 추천의 입력으로 사용하지 않는다.
-- 사내 웹 리더보드는 수식 결과를 다시 읽지 않고 `lunch_options`와 `recommendation_log` 원본을 동일한 의미로 집계한다. 웹 화면이 추가되어도 이 탭은 Sheet 사용자를 위해 유지한다.
-- 수식을 복구할 때는 `B1`에 아래 `QUERY` 수식을, `A2`에 아래 `ARRAYFORMULA` 수식을 입력한다. 수식과 전체 탭의 보호 편집자는 `recommendation_log`와 같은 소유자 및 Service Account로 유지한다.
-
-```text
-=QUERY('recommendation_log'!D2:H,"select D, E, sum(H), count(E) where D is not null and E is not null group by D, E order by sum(H) desc, D asc, E asc label D '식당', E '메뉴', sum(H) '누적 좋아요', count(E) '추천 등장 횟수'",0)
-=ARRAYFORMULA(IF(B2:B="","",ROW(B2:B)-1))
-```
 
 Google 자원의 조직 소유와 담당자 인계는 [`../operations/google-access.md`](../operations/google-access.md)를 따른다.

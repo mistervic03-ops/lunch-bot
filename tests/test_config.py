@@ -17,6 +17,7 @@ REQUIRED_ENV = {
     "SLACK_BOT_TOKEN": "xoxb-test",
     "LUNCH_CHANNEL_ID": "C_LUNCH",
     "OPS_CHANNEL_ID": "C_OPS",
+    "BAPRATUSTRA_LEADERBOARD_URL": "http://leaderboard.internal:8030/",
     "GOOGLE_SPREADSHEET_ID": "sheet-id",
 }
 
@@ -39,6 +40,7 @@ def test_load_settings_reads_required_values(
     assert settings.lunch_channel_id == "C_LUNCH"
     assert settings.timezone.key == "Asia/Seoul"
     assert settings.google_service_account_file == credential
+    assert settings.leaderboard_url == "http://leaderboard.internal:8030/"
     assert settings.lunch_sheet_url == (
         "https://docs.google.com/spreadsheets/d/sheet-id/edit"
     )
@@ -86,7 +88,12 @@ def test_load_google_sheets_settings_does_not_require_slack(
     credential.write_text("{}", encoding="utf-8")
     monkeypatch.setenv("GOOGLE_SPREADSHEET_ID", "sheet-id")
     monkeypatch.setenv("GOOGLE_SERVICE_ACCOUNT_FILE", str(credential))
-    for name in ("SLACK_BOT_TOKEN", "LUNCH_CHANNEL_ID", "OPS_CHANNEL_ID"):
+    for name in (
+        "SLACK_BOT_TOKEN",
+        "LUNCH_CHANNEL_ID",
+        "OPS_CHANNEL_ID",
+        "BAPRATUSTRA_LEADERBOARD_URL",
+    ):
         monkeypatch.delenv(name, raising=False)
 
     settings = load_google_sheets_settings(dotenv_path=tmp_path / "absent.env")
@@ -126,6 +133,7 @@ def test_load_ops_alert_settings_does_not_require_google_or_lunch_channel(
         "LUNCH_CHANNEL_ID",
         "GOOGLE_SPREADSHEET_ID",
         "GOOGLE_SERVICE_ACCOUNT_FILE",
+        "BAPRATUSTRA_LEADERBOARD_URL",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -145,6 +153,7 @@ def test_load_slack_service_settings_requires_only_slack_tokens(
         "OPS_CHANNEL_ID",
         "GOOGLE_SPREADSHEET_ID",
         "GOOGLE_SERVICE_ACCOUNT_FILE",
+        "BAPRATUSTRA_LEADERBOARD_URL",
     ):
         monkeypatch.delenv(name, raising=False)
 
