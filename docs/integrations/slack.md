@@ -115,6 +115,8 @@ python -m bapratustra --run-slack-service
 
 자동 고정에는 `pins:write`를 사용한다. 게시에는 성공했지만 고정이 실패하면 명령이 채널과 메시지 ID를 출력하고 실패로 종료한다. 워크스페이스 정책이 고정을 제한하면 `restricted_action`이 발생할 수 있다. 이 경우 이미 메시지가 존재하므로 권한 문제를 해결하기 전에 명령을 반복하지 않는다.
 
+앱은 일회성 교체만을 위한 `pins:read` 권한을 요청하지 않는다. 기존 온보딩을 교체할 때는 새 메시지의 게시와 자동 고정을 먼저 완료한 뒤 기존 메시지를 Slack에서 직접 고정 해제한다.
+
 북마크는 일회성 관리 작업이므로 `bookmarks:write`는 요청하지 않는다. 온보딩 명령을 반복하면 메시지가 중복 게시되므로 상태 확인 용도로 사용하지 않는다.
 
 ## 연결 테스트 명령
@@ -134,6 +136,7 @@ python -m bapratustra --test-slack
 ## 비밀정보 관리
 
 - `.env`는 Git에서 제외한다.
+- `BAPRATUSTRA_LEADERBOARD_URL`에는 구성원이 사내망에서 열 수 있는 전당 전체 URL을 설정한다.
 - Bot Token과 App-Level Token은 로그나 오류 메시지에 포함하지 않는다.
 - DGX Spark에서는 `/etc/bapratustra/bapratustra.env`처럼 애플리케이션 저장소 밖의 제한된 환경 파일에 둔다.
 - 토큰이 노출되면 종류에 맞게 Slack 앱 설정에서 즉시 폐기·재발급 또는 재설치하고 서버 값을 교체한다.
