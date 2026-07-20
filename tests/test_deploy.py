@@ -13,6 +13,9 @@ def test_systemd_units_use_bapratustra_identifiers() -> None:
     slack_service = (
         ROOT / "deploy" / "bapratustra-slack.service"
     ).read_text(encoding="utf-8")
+    leaderboard_service = (
+        ROOT / "deploy" / "bapratustra-leaderboard.service"
+    ).read_text(encoding="utf-8")
 
     assert "User=bapratustra" in service
     assert "Group=bapratustra" in service
@@ -27,6 +30,9 @@ def test_systemd_units_use_bapratustra_identifiers() -> None:
     assert "python -m bapratustra --run-slack-service" in slack_service
     assert "Restart=on-failure" in slack_service
     assert "WantedBy=multi-user.target" in slack_service
+    assert "uvicorn bapratustra.web:create_app --factory" in leaderboard_service
+    assert "--host 0.0.0.0 --port 8030 --workers 1" in leaderboard_service
+    assert "Restart=on-failure" in leaderboard_service
     assert not (ROOT / "deploy" / "babgwe.service").exists()
     assert not (ROOT / "deploy" / "babgwe.timer").exists()
 

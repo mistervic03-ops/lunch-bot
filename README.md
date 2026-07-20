@@ -2,7 +2,7 @@
 
 매일 평일 오전 11시(KST), 사내 Slack 채널에 세 곳의 점심 후보를 알려주는 봇이다. 과장되게 진지한 철학자가 점심의 세 갈래 길을 선언하는 캐릭터를 사용하며, 후보는 직원들이 공동 편집하는 Google Sheet에서 가져온다.
 
-현재 저장소에는 공정 순환 추천, Sheet 링크 버튼이 있는 Slack 게시, 번호 반응, Google Sheets 추천 로그와 좋아요 동기화, 채널 온보딩과 최소 Socket Mode ACK 서비스가 구현되어 있다.
+현재 저장소에는 공정 순환 추천, Sheet 링크 버튼이 있는 Slack 게시, 번호 반응, Google Sheets 추천 로그와 좋아요 동기화, 채널 온보딩, 최소 Socket Mode ACK 서비스와 사내 리더보드 웹페이지가 구현되어 있다.
 
 ## 개발 환경
 
@@ -56,6 +56,14 @@ python -m bapratustra --post-onboarding
 ```bash
 python -m bapratustra --run-slack-service
 ```
+
+사내 리더보드를 로컬에서 확인한다.
+
+```bash
+python -m uvicorn bapratustra.web:create_app --factory --host 127.0.0.1 --port 8030
+```
+
+페이지는 실제 Sheet를 읽어 `http://127.0.0.1:8030/`에 표시하고 5분간 캐시한다. 운영 접근 범위와 지표 정의는 `docs/features/leaderboard.md`를 따른다.
 
 ## 테스트
 

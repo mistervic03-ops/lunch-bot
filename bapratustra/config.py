@@ -34,6 +34,13 @@ class GoogleSheetsSettings:
     google_spreadsheet_id: str
     google_service_account_file: Path
 
+    @property
+    def lunch_sheet_url(self) -> str:
+        return (
+            "https://docs.google.com/spreadsheets/d/"
+            f"{self.google_spreadsheet_id}/edit"
+        )
+
 
 @dataclass(frozen=True)
 class OpsAlertSettings:

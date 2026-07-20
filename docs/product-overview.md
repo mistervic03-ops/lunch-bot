@@ -57,11 +57,14 @@
 - 좋아요 데이터는 처음부터 수집하되 자동 통계 게시 기능은 실제 사용을 확인한 뒤 결정한다.
 - 같은 Spreadsheet의 보호된 `인기 메뉴` 탭에서 전체 추천 기록의 메뉴별 누적 좋아요 리더보드를 제공한다.
 - 리더보드는 누적 좋아요 내림차순의 수식 기반 읽기 전용 화면이며 일일 추천의 공정 순환에는 영향을 주지 않는다.
+- 사내망 전용 `밥라투스트라의 전당` 웹페이지에서 메뉴, 식당과 후보 추천인 순위를 읽기 전용으로 제공한다.
+- 웹 리더보드는 FastAPI 서버 렌더링과 5분 캐시를 사용하며 로그인, 별도 DB와 외부 공개는 하지 않는다.
 
 Google Sheet의 정확한 스키마와 관리 규칙은 [`data/google-sheets.md`](data/google-sheets.md)를 따른다.
 정기 게시와 예외 처리의 상세 정책은 [`features/daily-recommendation.md`](features/daily-recommendation.md)를 따른다.
 번호 반응과 통계 데이터 수집 정책은 [`features/reactions.md`](features/reactions.md)를 따른다.
 기술 스택과 실행 구조는 [`architecture/runtime.md`](architecture/runtime.md)를 따른다.
+웹 리더보드의 정확한 지표와 접근 정책은 [`features/leaderboard.md`](features/leaderboard.md)를 따른다.
 
 ## 아직 결정하지 않은 사항
 
@@ -81,8 +84,6 @@ Google Sheet의 정확한 스키마와 관리 규칙은 [`data/google-sheets.md`
 - 외부 장소 API를 이용한 주소, 거리, 영업 정보 보완
 - Google Sheet가 불편해질 경우 가벼운 관리 대시보드로 전환
 - 구성원 또는 팀 단위의 개인화
-
-다음 제품 단계에서는 Sheet 리더보드를 대체하지 않고, 같은 데이터를 더 보기 좋게 보여주는 사내용 밥라투스트라 리더보드 웹페이지를 우선 검토한다. 인증 범위, 공개 방식과 갱신 구조는 구현 전에 별도로 합의한다.
 
 후보라는 이유만으로 미리 구현하지 않는다. 각 기능은 실제 문제, 사용 빈도, 구현 및 운영 비용을 확인하고 선택한다.
 

@@ -93,6 +93,9 @@ def test_load_google_sheets_settings_does_not_require_slack(
 
     assert settings.google_spreadsheet_id == "sheet-id"
     assert settings.google_service_account_file == credential
+    assert settings.lunch_sheet_url == (
+        "https://docs.google.com/spreadsheets/d/sheet-id/edit"
+    )
 
 
 def test_load_ops_alert_settings_does_not_require_google_or_lunch_channel(

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="사내 점심 추천과 좋아요로 쌓아 올린 밥라투스트라 리더보드">
+    <title>밥라투스트라의 전당</title>
+    <link rel="stylesheet" href="/static/leaderboard.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">BAPRATUSTRA · THE LUNCH ARCHIVE</p>
+          <h1>밥라투스트라의<br><span>전당</span></h1>
+          <p class="hero-description">
+            선택받은 점심의 기록은 사라지지 않는다.<br>
+            구성원의 추천과 좋아요가 만든 길을 확인해보세요.
+          </p>
+        </div>
+        <div class="hero-mark" aria-hidden="true">
+          <span>食</span>
+        </div>
+        <div class="hero-meta">
+          {% if snapshot.likes_synced_at %}
+            <span>좋아요 집계</span>
+            <strong>{{ snapshot.likes_synced_at.strftime('%Y.%m.%d %H:%M KST') }}</strong>
+          {% else %}
+            <span>좋아요 집계</span>
+            <strong>첫 기록을 기다리는 중</strong>
+          {% endif %}
+        </div>
+      </header>
+
+      <main>
+        <section class="summary" aria-label="리더보드 요약">
+          <div><strong>{{ snapshot.total_menus }}</strong><span>기록된 인기 메뉴</span></div>
+          <div><strong>{{ snapshot.total_restaurants }}</strong><span>기록된 식당</span></div>
+          <div><strong>{{ snapshot.total_contributors }}</strong><span>이름을 남긴 추천인</span></div>
+        </section>
+
+        <div class="leaderboard-grid">
+          <section class="panel panel-primary">
+            <div class="panel-heading">
+              <div>
+                <p class="section-number">第一章</p>
+                <h2>사랑받은 메뉴</h2>
+              </div>
+              <p>누적 좋아요 · 추천 등장</p>
+            </div>
+            {% if snapshot.menus %}
+              <ol class="standing-list">
+                {% for item in snapshot.menus %}
+                  <li class="standing-row{% if loop.index <= 3 %} top-rank{% endif %}">
+                    <span class="rank">{{ '%02d'|format(loop.index) }}</span>
+                    <div class="standing-name">
+                      <strong>{{ item.menu }}</strong>
+                      <span>{{ item.restaurant }}</span>
+                    </div>
+                    <div class="standing-score">
+                      <strong>{{ item.likes }}</strong><span>좋아요</span>
+                    </div>
+                    <div class="standing-subscore">
+                      <strong>{{ item.appearances }}</strong><span>회 등장</span>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ol>
+            {% else %}
+              <p class="empty-state">아직 좋아요 기록이 없습니다.<br>첫 번째 점심의 길을 기다리고 있습니다.</p>
+            {% endif %}
+          </section>
+
+          <div class="side-stack">
+            <section class="panel">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="section-number">第二章</p>
+                  <h2>식당의 길</h2>
+                </div>
+                <p>식당별 누적</p>
+              </div>
+              {% if snapshot.restaurants %}
+                <ol class="compact-list">
+                  {% for item in snapshot.restaurants %}
+                    <li>
+                      <span class="rank">{{ '%02d'|format(loop.index) }}</span>
+                      <strong>{{ item.restaurant }}</strong>
+                      <span>{{ item.likes }} 좋아요</span>
+                    </li>
+                  {% endfor %}
+                </ol>
+              {% else %}
+                <p class="empty-state small">추천 기록이 쌓이면 식당의 길이 열립니다.</p>
+              {% endif %}
+            </section>
+
+            <section class="panel panel-accent">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="section-number">第三章</p>
+                  <h2>길을 보탠 사람</h2>
+                </div>
+                <p>활성 후보 기준</p>
+              </div>
+              {% if snapshot.contributors %}
+                <ol class="compact-list">
+                  {% for item in snapshot.contributors %}
+                    <li>
+                      <span class="rank">{{ '%02d'|format(loop.index) }}</span>
+                      <strong>{{ item.name }}</strong>
+                      <span>{{ item.options }}개 후보</span>
+                    </li>
+                  {% endfor %}
+                </ol>
+              {% else %}
+                <p class="empty-state small">추천인 이름이 입력되면 이곳에 기록됩니다.</p>
+              {% endif %}
+            </section>
+          </div>
+        </div>
+
+        <section class="contribution-callout">
+          <div>
+            <p class="eyebrow">THE NEXT PATH</p>
+            <h2>아직 알려지지 않은 점심이 있나요?</h2>
+            <p>좋아하는 식당과 메뉴를 공동 시트에 보태주세요.</p>
+          </div>
+          <a class="sheet-button" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">점심 후보 보태기 <span>↗</span></a>
+        </section>
+      </main>
+
+      <footer>
+        <span>밥라투스트라</span>
+        <p>인기 순위는 공정 순환 추천에 영향을 주지 않습니다.</p>
+      </footer>
+    </div>
+  </body>
+</html>

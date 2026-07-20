@@ -141,6 +141,7 @@ recommendation_log     # 봇 기록, 직원 읽기 전용
 - 좋아요 집계가 `recommendation_log`에 반영되면 별도 봇 쓰기 없이 자동으로 다시 계산된다.
 - 탭 전체는 기존 `recommendation_log`와 같은 소유자와 Service Account만 수정할 수 있게 보호한다.
 - 리더보드는 인기 현황을 보여줄 뿐 일일 공정 순환 추천의 입력으로 사용하지 않는다.
+- 사내 웹 리더보드는 수식 결과를 다시 읽지 않고 `lunch_options`와 `recommendation_log` 원본을 동일한 의미로 집계한다. 웹 화면이 추가되어도 이 탭은 Sheet 사용자를 위해 유지한다.
 - 수식을 복구할 때는 `B1`에 아래 `QUERY` 수식을, `A2`에 아래 `ARRAYFORMULA` 수식을 입력한다. 수식과 전체 탭의 보호 편집자는 `recommendation_log`와 같은 소유자 및 Service Account로 유지한다.
 
 ```text
