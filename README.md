@@ -45,7 +45,7 @@ python -m bapratustra --run-daily
 
 이 명령은 최근 다섯 추천 메시지의 좋아요를 Sheet에 갱신하고, 당일 중복 게시를 확인한 뒤 실제 점심 채널 게시, 추천 로그 기록과 번호 반응 추가를 수행한다. Slack과 Sheet를 실제로 변경하므로 테스트 용도로 반복 실행하지 않는다.
 
-채널 안내는 한 번 게시한 뒤 Slack에서 고정한다.
+채널 안내는 한 번 게시하고 같은 명령에서 자동으로 고정한다.
 
 ```bash
 python -m bapratustra --post-onboarding

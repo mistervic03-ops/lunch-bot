@@ -10,6 +10,7 @@ from bapratustra.messaging import (
     build_daily_message,
     build_onboarding_message,
     get_reaction_counts,
+    pin_message,
     post_channel_onboarding,
     post_daily_message,
     post_ops_alert,
@@ -170,6 +171,16 @@ def test_post_channel_onboarding_explains_schedule_reactions_and_sheet() -> None
     assert "‘인기 메뉴’ 탭" in text
     blocks = client.chat_postMessage.call_args.kwargs["blocks"]
     assert blocks[1]["elements"][0]["url"] == "https://docs.google.com/sheet"
+
+
+def test_pin_message_uses_posted_channel_and_timestamp() -> None:
+    client = MagicMock()
+
+    pin_message(client, SlackPost("C_TEST", "123.456"))
+
+    client.pins_add.assert_called_once_with(
+        channel="C_TEST", timestamp="123.456"
+    )
 
 
 def test_add_candidate_reactions_maps_positions_to_number_emoji() -> None:

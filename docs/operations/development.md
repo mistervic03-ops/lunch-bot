@@ -8,7 +8,7 @@
 - 미구현: 월간 통계 게시, 번호 반응 추가 실패의 자동 복구
 - `python -m bapratustra`는 설정만 검증하며 외부 API를 호출하지 않는다.
 - `python -m bapratustra --run-daily`는 실제 Slack과 Google Sheet를 변경한다.
-- `python -m bapratustra --post-onboarding`은 안내 메시지를 한 번 게시하며 Slack 관리자가 직접 고정한다.
+- `python -m bapratustra --post-onboarding`은 안내 메시지를 한 번 게시하고 즉시 자동 고정한다.
 - `python -m bapratustra --run-slack-service`는 App-Level Token과 Bot Token만 읽어 Socket Mode 연결을 유지한다.
 - 실제 점심·운영 채널에서 전체 흐름을 한 번 검증하기 전에는 `deploy/bapratustra.timer`를 활성화하지 않는다.
 - 배포 전 코드 식별자를 `babgwe`에서 `bapratustra`로 하드 전환했다. 옛 Python 패키지, systemd unit과 `BABGWE_TIMEZONE` fallback은 제공하지 않는다.
@@ -62,7 +62,7 @@ python -m bapratustra --run-slack-service
 python -m bapratustra --run-daily
 ```
 
-첫 명령은 단위 테스트를 실행한다. 설정 검증과 드라이런은 외부 상태를 바꾸지 않는다. `--test-slack`은 버튼이 포함된 연결 테스트 메시지와 번호 반응을 게시·조회하되 추천 로그를 수정하지 않는다. `--post-onboarding`은 안내 메시지를 한 건 게시하므로 채널당 한 번만 실행하고 사람이 고정한다. `--run-slack-service`는 종료할 때까지 Socket Mode 요청을 기다린다. `--run-daily`는 최근 좋아요를 갱신하고 실제 추천 게시·로그 기록·번호 반응 추가를 수행한다.
+첫 명령은 단위 테스트를 실행한다. 설정 검증과 드라이런은 외부 상태를 바꾸지 않는다. `--test-slack`은 버튼이 포함된 연결 테스트 메시지와 번호 반응을 게시·조회하되 추천 로그를 수정하지 않는다. `--post-onboarding`은 안내 메시지를 게시하고 자동 고정하므로 채널당 한 번만 실행한다. 게시 후 고정에 실패하면 이미 생성된 메시지의 채널과 ID를 출력하므로 원인을 해결하기 전에 명령을 반복하지 않는다. `--run-slack-service`는 종료할 때까지 Socket Mode 요청을 기다린다. `--run-daily`는 최근 좋아요를 갱신하고 실제 추천 게시·로그 기록·번호 반응 추가를 수행한다.
 
 `--run-daily`는 외부 상태를 바꾸므로 단순 검증 목적으로 실행하지 않는다. 성공과 같은 날짜·채널의 중복 종료는 코드 `0`, 완료되지 않은 작업은 코드 `1`, 설정 또는 스키마 오류는 코드 `2`, 진입점까지 전달된 Slack API 오류는 코드 `3`을 반환한다.
 

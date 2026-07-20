@@ -20,6 +20,7 @@ from bapratustra.messaging import (
     add_candidate_reactions,
     build_daily_message,
     get_reaction_counts,
+    pin_message,
     post_daily_message,
     post_channel_onboarding,
     post_ops_alert,
@@ -138,9 +139,18 @@ def post_onboarding() -> int:
         settings.lunch_channel_id,
         sheet_url=settings.lunch_sheet_url,
     )
+    try:
+        pin_message(slack_client, post)
+    except SlackApiError:
+        print(
+            "온보딩 게시는 성공했지만 자동 고정에 실패했습니다: "
+            f"channel={post.channel_id}, ts={post.message_ts}",
+            file=sys.stderr,
+        )
+        raise
     print(
-        "채널 온보딩 게시 완료: "
-        f"channel={post.channel_id}, ts={post.message_ts}; Slack에서 고정해주세요."
+        "채널 온보딩 게시 및 자동 고정 완료: "
+        f"channel={post.channel_id}, ts={post.message_ts}"
     )
     return 0
 

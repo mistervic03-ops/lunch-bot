@@ -100,7 +100,7 @@ MVP에서는 다음을 사용하지 않는다.
 
 - Slack Bot Token, App-Level Token과 Google Service Account 인증 정보는 저장소에 커밋하지 않는다.
 - Slack 앱에는 초기 기능에 필요한 최소 권한만 부여한다.
-- 초기 Slack Bot Token 권한은 `chat:write`, `reactions:read`, `reactions:write`로 제한한다.
+- Slack Bot Token 권한은 `chat:write`, `pins:write`, `reactions:read`, `reactions:write`로 제한한다. `pins:write`는 온보딩 메시지 자동 고정에만 사용한다.
 - Slack 앱 설정은 `slack/app-manifest.json`으로 버전 관리하며 토큰과 채널 ID는 포함하지 않는다.
 - 봇을 점심 채널과 `#밥괘-운영` 채널에 직접 초대한다.
 - Google Service Account에는 도메인 전체 위임이나 Workspace 관리자 권한을 부여하지 않는다.

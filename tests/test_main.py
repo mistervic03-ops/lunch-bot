@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
+from slack_sdk.errors import SlackApiError
+
 from bapratustra import __main__
 from bapratustra.job import DailyRunResult
 from bapratustra.messaging import SlackPost
@@ -183,6 +185,7 @@ def test_post_onboarding_uses_configured_channel_and_sheet(monkeypatch, capsys) 
     )
     client = object()
     calls = []
+    pins = []
     monkeypatch.setattr(__main__, "load_settings", lambda: settings)
     monkeypatch.setattr(__main__, "WebClient", lambda token: client)
     monkeypatch.setattr(
@@ -192,6 +195,9 @@ def test_post_onboarding_uses_configured_channel_and_sheet(monkeypatch, capsys) 
             (slack_client, channel_id, kwargs)
         )
         or SlackPost("C_LUNCH", "123.456"),
+    )
+    monkeypatch.setattr(
+        __main__, "pin_message", lambda slack_client, post: pins.append(post)
     )
 
     exit_code = __main__.main(["--post-onboarding"])
@@ -204,7 +210,40 @@ def test_post_onboarding_uses_configured_channel_and_sheet(monkeypatch, capsys) 
             {"sheet_url": "https://docs.google.com/sheet"},
         )
     ]
-    assert "Slack에서 고정" in capsys.readouterr().out
+    assert pins == [SlackPost("C_LUNCH", "123.456")]
+    assert "게시 및 자동 고정 완료" in capsys.readouterr().out
+
+
+def test_post_onboarding_reports_post_location_when_auto_pin_fails(
+    monkeypatch, capsys
+) -> None:
+    settings = SimpleNamespace(
+        slack_bot_token="xoxb-test",
+        lunch_channel_id="C_LUNCH",
+        lunch_sheet_url="https://docs.google.com/sheet",
+    )
+    monkeypatch.setattr(__main__, "load_settings", lambda: settings)
+    monkeypatch.setattr(__main__, "WebClient", lambda token: object())
+    monkeypatch.setattr(
+        __main__,
+        "post_channel_onboarding",
+        lambda *args, **kwargs: SlackPost("C_LUNCH", "123.456"),
+    )
+    monkeypatch.setattr(
+        __main__,
+        "pin_message",
+        lambda *args: (_ for _ in ()).throw(
+            SlackApiError("pin failed", {"error": "restricted_action"})
+        ),
+    )
+
+    exit_code = __main__.main(["--post-onboarding"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 3
+    assert "게시는 성공했지만 자동 고정에 실패" in captured.err
+    assert "channel=C_LUNCH, ts=123.456" in captured.err
+    assert "restricted_action" in captured.err
 
 
 def test_run_slack_service_uses_minimal_service_settings(monkeypatch) -> None:

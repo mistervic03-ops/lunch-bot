@@ -12,7 +12,12 @@ def test_slack_manifest_uses_only_approved_bot_scopes() -> None:
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
 
     assert manifest["oauth_config"]["scopes"] == {
-        "bot": ["chat:write", "reactions:read", "reactions:write"]
+        "bot": [
+            "chat:write",
+            "pins:write",
+            "reactions:read",
+            "reactions:write",
+        ]
     }
 
 

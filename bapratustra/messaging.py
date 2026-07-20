@@ -141,6 +141,11 @@ def post_channel_onboarding(
     return SlackPost(channel_id=posted_channel, message_ts=message_ts)
 
 
+def pin_message(client: Any, post: SlackPost) -> None:
+    """Pin a message that the bot has already posted to its channel."""
+    client.pins_add(channel=post.channel_id, timestamp=post.message_ts)
+
+
 def add_candidate_reactions(
     client: Any, channel_id: str, message_ts: str, count: int
 ) -> tuple[str, ...]:
