@@ -50,6 +50,7 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     assert "밥라투스트라의 전당" in response.text
     assert "인기 메뉴" in response.text
     assert '<span class="brand">밥라투스트라</span>' not in response.text
+    assert '<p class="hero-kicker">사내 점심 기록</p>' in response.text
     assert "점심의 선택은 기록으로 남는다." in response.text
     assert "第一章" not in response.text
     assert "THE LUNCH ARCHIVE" not in response.text
