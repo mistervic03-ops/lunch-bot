@@ -33,6 +33,8 @@ def test_systemd_units_use_bapratustra_identifiers() -> None:
     assert "uvicorn bapratustra.web:create_app --factory" in leaderboard_service
     assert "--host 0.0.0.0 --port 8030 --workers 1" in leaderboard_service
     assert "Restart=on-failure" in leaderboard_service
+    assert "Environment=PYTHON_DOTENV_DISABLED=1" in leaderboard_service
+    assert "UnsetEnvironment=SLACK_BOT_TOKEN SLACK_APP_TOKEN" in leaderboard_service
     assert not (ROOT / "deploy" / "babgwe.service").exists()
     assert not (ROOT / "deploy" / "babgwe.timer").exists()
 

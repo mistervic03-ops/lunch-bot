@@ -98,6 +98,25 @@ def test_load_google_sheets_settings_does_not_require_slack(
     )
 
 
+def test_dotenv_loading_can_be_disabled_for_leaderboard_service(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    dotenv = tmp_path / ".env"
+    dotenv.write_text(
+        "GOOGLE_SPREADSHEET_ID=sheet-id\n"
+        f"GOOGLE_SERVICE_ACCOUNT_FILE={tmp_path / 'credential.json'}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("PYTHON_DOTENV_DISABLED", "1")
+    monkeypatch.delenv("GOOGLE_SPREADSHEET_ID", raising=False)
+    monkeypatch.delenv("GOOGLE_SERVICE_ACCOUNT_FILE", raising=False)
+
+    with pytest.raises(
+        ConfigurationError, match="GOOGLE_SERVICE_ACCOUNT_FILE is required"
+    ):
+        load_google_sheets_settings(dotenv_path=dotenv)
+
+
 def test_load_ops_alert_settings_does_not_require_google_or_lunch_channel(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

@@ -49,6 +49,7 @@
 - CORS API나 브라우저 JavaScript 데이터 호출 없이 서버가 완성된 HTML을 반환한다.
 - FastAPI, Jinja 템플릿과 정적 CSS만 사용하며 프론트엔드 빌드 도구는 두지 않는다.
 - systemd `bapratustra-leaderboard.service`가 Uvicorn 단일 worker를 상시 실행한다.
+- 공용 환경 파일을 사용하되 systemd가 Slack 토큰과 채널 설정을 웹 프로세스에 전달하지 않으며, 웹 프로세스의 `.env` 재로딩도 비활성화한다.
 - 기본 포트는 `8030`이며 배포 전에 다른 내부 서비스와 충돌하지 않는지 확인한다.
 
 운영 채널과 Sheet에서 리더보드로 연결하는 방식은 실제 운영 채널과 내부 접속 주소를 확정한 뒤 적용한다.

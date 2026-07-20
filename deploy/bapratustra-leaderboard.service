@@ -9,6 +9,8 @@ User=bapratustra
 Group=bapratustra
 WorkingDirectory=/opt/bapratustra
 EnvironmentFile=/etc/bapratustra/bapratustra.env
+Environment=PYTHON_DOTENV_DISABLED=1
+UnsetEnvironment=SLACK_BOT_TOKEN SLACK_APP_TOKEN LUNCH_CHANNEL_ID OPS_CHANNEL_ID BAPRATUSTRA_TIMEZONE
 ExecStart=/opt/bapratustra/.venv/bin/python -m uvicorn bapratustra.web:create_app --factory --host 0.0.0.0 --port 8030 --workers 1
 Restart=on-failure
 RestartSec=5
