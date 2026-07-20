@@ -52,6 +52,7 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     assert '<span class="brand">밥라투스트라</span>' not in response.text
     assert '<p class="hero-kicker">사내 점심 기록</p>' in response.text
     assert "점심의 선택은 기록으로 남는다." in response.text
+    assert "점심 후보 보태기" in response.text
     assert (
         '<img class="hero-portrait" '
         'src="/static/images/friedrich-nietzsche-1885.jpg" alt="" aria-hidden="true">'
