@@ -11,15 +11,11 @@
     <div class="page-shell">
       <header class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">BAPRATUSTRA · THE LUNCH ARCHIVE</p>
-          <h1>밥라투스트라의<br><span>전당</span></h1>
+          <p class="brand-label">밥라투스트라</p>
+          <h1>점심 리더보드</h1>
           <p class="hero-description">
-            선택받은 점심의 기록은 사라지지 않는다.<br>
-            구성원의 추천과 좋아요가 만든 길을 확인해보세요.
+            구성원의 추천과 좋아요로 쌓인 점심 기록입니다.
           </p>
-        </div>
-        <div class="hero-mark" aria-hidden="true">
-          <span>食</span>
         </div>
         <div class="hero-meta">
           {% if snapshot.likes_synced_at %}
@@ -42,10 +38,7 @@
         <div class="leaderboard-grid">
           <section class="panel panel-primary">
             <div class="panel-heading">
-              <div>
-                <p class="section-number">第一章</p>
-                <h2>사랑받은 메뉴</h2>
-              </div>
+              <h2>인기 메뉴</h2>
               <p>누적 좋아요 · 추천 등장</p>
             </div>
             {% if snapshot.menus %}
@@ -67,17 +60,14 @@
                 {% endfor %}
               </ol>
             {% else %}
-              <p class="empty-state">아직 좋아요 기록이 없습니다.<br>첫 번째 점심의 길을 기다리고 있습니다.</p>
+              <p class="empty-state">아직 좋아요 기록이 없습니다.</p>
             {% endif %}
           </section>
 
           <div class="side-stack">
             <section class="panel">
               <div class="panel-heading compact">
-                <div>
-                  <p class="section-number">第二章</p>
-                  <h2>식당의 길</h2>
-                </div>
+                <h2>인기 식당</h2>
                 <p>식당별 누적</p>
               </div>
               {% if snapshot.restaurants %}
@@ -91,16 +81,13 @@
                   {% endfor %}
                 </ol>
               {% else %}
-                <p class="empty-state small">추천 기록이 쌓이면 식당의 길이 열립니다.</p>
+                <p class="empty-state small">아직 추천 기록이 없습니다.</p>
               {% endif %}
             </section>
 
-            <section class="panel panel-accent">
+            <section class="panel">
               <div class="panel-heading compact">
-                <div>
-                  <p class="section-number">第三章</p>
-                  <h2>길을 보탠 사람</h2>
-                </div>
+                <h2>추천인</h2>
                 <p>활성 후보 기준</p>
               </div>
               {% if snapshot.contributors %}
@@ -122,9 +109,8 @@
 
         <section class="contribution-callout">
           <div>
-            <p class="eyebrow">THE NEXT PATH</p>
-            <h2>아직 알려지지 않은 점심이 있나요?</h2>
-            <p>좋아하는 식당과 메뉴를 공동 시트에 보태주세요.</p>
+            <h2>새로운 점심 후보가 있나요?</h2>
+            <p>좋아하는 식당과 메뉴를 공동 시트에 추가할 수 있습니다.</p>
           </div>
           <a class="sheet-button" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">점심 후보 보태기 <span>↗</span></a>
         </section>

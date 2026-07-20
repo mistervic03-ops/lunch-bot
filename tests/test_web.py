@@ -23,7 +23,10 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "밥라투스트라의 전당" in response.text
+    assert "점심 리더보드" in response.text
+    assert "인기 메뉴" in response.text
+    assert "第一章" not in response.text
+    assert "THE LUNCH ARCHIVE" not in response.text
     assert "민지" in response.text
     assert 'href="/static/leaderboard.css"' in response.text
     assert "https://docs.google.com/spreadsheets/d/sheet-id/edit" in response.text
