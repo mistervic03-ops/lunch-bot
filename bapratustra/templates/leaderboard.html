@@ -10,9 +10,9 @@
   <body>
     <div class="page-shell">
       <header class="topbar">
-        <span class="brand">밥라투스트라</span>
-        <h1>점심 리더보드</h1>
-        <a class="sheet-link" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">후보 추가</a>
+        <span class="topbar-note">점심의 선택은 기록으로 남는다.</span>
+        <h1>밥라투스트라의 전당</h1>
+        <a class="sheet-link" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">후보 추가 <span aria-hidden="true">↗</span></a>
       </header>
 
       <main>
@@ -42,7 +42,7 @@
             </div>
             <ol class="menu-list">
               {% for item in snapshot.menus %}
-                <li class="menu-row{% if loop.index <= 3 %} top-rank{% endif %}">
+                <li class="menu-row{% if loop.index <= 3 %} rank-{{ loop.index }}{% endif %}">
                   <span class="rank">{{ '%02d'|format(loop.index) }}</span>
                   <div class="menu-name">
                     {% if item.map_url %}
@@ -110,7 +110,6 @@
       </main>
 
       <footer>
-        <span>밥라투스트라</span>
         <p>인기 순위는 공정 순환 추천에 영향을 주지 않습니다.</p>
       </footer>
     </div>
