@@ -1,16 +1,45 @@
-"""Pure helpers for the daily job orchestration boundary."""
+"""Daily recommendation helpers and orchestration."""
 
 from __future__ import annotations
 
+import sys
+import uuid
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import date, datetime
+from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
-from babgwe.recommendation import LunchOption, RecommendationHistory
-from babgwe.sheets import RecommendationLogEntry
+from babgwe.config import Settings
+from babgwe.messaging import (
+    NUMBER_REACTIONS,
+    SlackPost,
+    add_candidate_reactions,
+    get_reaction_counts,
+    post_daily_message,
+    post_ops_alert,
+)
+from babgwe.recommendation import (
+    LunchOption,
+    RecommendationHistory,
+    select_recommendations,
+)
+from babgwe.sheets import (
+    RecommendationLogEntry,
+    append_recommendation_log,
+    read_lunch_options,
+    read_recommendation_log,
+    update_recommendation_likes,
+)
 
 
 KST = ZoneInfo("Asia/Seoul")
+
+
+@dataclass(frozen=True)
+class DailyRunResult:
+    outcome: Literal["posted", "duplicate", "failed"]
+    post: SlackPost | None = None
 
 
 def build_recommendation_log(
@@ -62,3 +91,237 @@ def to_recommendation_history(
         )
         for entry in entries
     )
+
+
+def recent_message_entries(
+    entries: Sequence[RecommendationLogEntry], *, limit: int = 5
+) -> tuple[tuple[RecommendationLogEntry, ...], ...]:
+    """Group the newest distinct Slack messages for bounded reaction syncing."""
+    if limit < 1:
+        return ()
+
+    grouped: dict[tuple[str, str], list[RecommendationLogEntry]] = {}
+    for entry in entries:
+        key = (entry.slack_channel_id, entry.slack_message_ts)
+        grouped.setdefault(key, []).append(entry)
+
+    newest = sorted(
+        grouped.values(),
+        key=lambda group: max(entry.recommended_at for entry in group),
+        reverse=True,
+    )[:limit]
+    return tuple(tuple(group) for group in newest)
+
+
+def sync_recent_reactions(
+    sheets_service: Any,
+    slack_client: Any,
+    spreadsheet_id: str,
+    entries: Sequence[RecommendationLogEntry],
+    *,
+    synced_at: datetime,
+    limit: int = 5,
+) -> int:
+    """Read recent Slack counts, then atomically submit their Sheet updates."""
+    updates: list[tuple[RecommendationLogEntry, int]] = []
+    for group in recent_message_entries(entries, limit=limit):
+        first = group[0]
+        counts = get_reaction_counts(
+            slack_client, first.slack_channel_id, first.slack_message_ts
+        )
+        for entry in group:
+            reaction_name = NUMBER_REACTIONS[entry.position - 1]
+            employee_count = max(counts.get(reaction_name, 0) - 1, 0)
+            updates.append((entry, employee_count))
+
+    update_recommendation_likes(
+        sheets_service,
+        spreadsheet_id,
+        updates,
+        synced_at=synced_at,
+    )
+    return len(updates)
+
+
+def _error_id() -> str:
+    return uuid.uuid4().hex[:8]
+
+
+def _alert(
+    slack_client: Any,
+    ops_channel_id: str,
+    *,
+    stage: str,
+    outcome: str,
+    error_id: str | None = None,
+) -> None:
+    try:
+        post_ops_alert(
+            slack_client,
+            ops_channel_id,
+            stage=stage,
+            outcome=outcome,
+            error_id=error_id,
+        )
+    except Exception as exc:  # The journal remains available if Slack alerting fails.
+        print(
+            f"운영 알림 전송 실패: {type(exc).__name__}",
+            file=sys.stderr,
+        )
+
+
+def _failed(
+    slack_client: Any,
+    settings: Settings,
+    *,
+    stage: str,
+    outcome: str,
+    exc: Exception | None = None,
+    post: SlackPost | None = None,
+) -> DailyRunResult:
+    error_id = _error_id()
+    if exc is not None:
+        print(
+            f"밥괘 작업 실패 [{error_id}] {stage}: {type(exc).__name__}",
+            file=sys.stderr,
+        )
+    _alert(
+        slack_client,
+        settings.ops_channel_id,
+        stage=stage,
+        outcome=outcome,
+        error_id=error_id,
+    )
+    return DailyRunResult("failed", post=post)
+
+
+def run_daily_job(
+    settings: Settings,
+    sheets_service: Any,
+    slack_client: Any,
+    *,
+    now: datetime | None = None,
+) -> DailyRunResult:
+    """Run one bounded daily recommendation job with operational alerts."""
+    run_at = now or datetime.now(tz=KST)
+    if run_at.tzinfo is None or run_at.utcoffset() is None:
+        raise ValueError("now must include timezone information")
+    run_at_kst = run_at.astimezone(KST)
+
+    try:
+        options_result = read_lunch_options(
+            sheets_service, settings.google_spreadsheet_id
+        )
+        log_entries = read_recommendation_log(
+            sheets_service, settings.google_spreadsheet_id
+        )
+    except Exception as exc:
+        return _failed(
+            slack_client,
+            settings,
+            stage="Google Sheet 읽기",
+            outcome="추천을 게시하지 않음",
+            exc=exc,
+        )
+
+    try:
+        sync_recent_reactions(
+            sheets_service,
+            slack_client,
+            settings.google_spreadsheet_id,
+            log_entries,
+            synced_at=run_at_kst,
+        )
+    except Exception as exc:
+        error_id = _error_id()
+        print(
+            f"좋아요 집계 실패 [{error_id}]: {type(exc).__name__}",
+            file=sys.stderr,
+        )
+        _alert(
+            slack_client,
+            settings.ops_channel_id,
+            stage="최근 좋아요 집계",
+            outcome="기존 값을 유지하고 당일 추천은 계속함",
+            error_id=error_id,
+        )
+
+    if has_completed_run(
+        log_entries, run_at_kst.date(), settings.lunch_channel_id
+    ):
+        return DailyRunResult("duplicate")
+
+    if options_result.issues:
+        rows = ", ".join(str(issue.row_number) for issue in options_result.issues)
+        _alert(
+            slack_client,
+            settings.ops_channel_id,
+            stage="추천 후보 검증",
+            outcome=(
+                f"유효하지 않은 {len(options_result.issues)}개 행 제외 "
+                f"({rows}행)"
+            ),
+        )
+
+    recommendations = select_recommendations(
+        options_result.options, to_recommendation_history(log_entries)
+    )
+    if not recommendations:
+        return _failed(
+            slack_client,
+            settings,
+            stage="추천 후보 선택",
+            outcome="유효한 후보가 없어 점심 채널에 게시하지 않음",
+        )
+
+    try:
+        post = post_daily_message(
+            slack_client, settings.lunch_channel_id, recommendations
+        )
+    except Exception as exc:
+        return _failed(
+            slack_client,
+            settings,
+            stage="Slack 추천 게시",
+            outcome="점심 채널에 게시하지 못함",
+            exc=exc,
+        )
+
+    new_entries = build_recommendation_log(
+        recommendations,
+        published_at=run_at_kst,
+        slack_channel_id=post.channel_id,
+        slack_message_ts=post.message_ts,
+    )
+    try:
+        append_recommendation_log(
+            sheets_service, settings.google_spreadsheet_id, new_entries
+        )
+    except Exception as exc:
+        return _failed(
+            slack_client,
+            settings,
+            stage="추천 로그 기록",
+            outcome=(
+                "메시지는 게시됐지만 로그를 기록하지 못함; "
+                "자동 재게시하지 않음"
+            ),
+            exc=exc,
+            post=post,
+        )
+
+    try:
+        add_candidate_reactions(
+            slack_client, post.channel_id, post.message_ts, len(recommendations)
+        )
+    except Exception as exc:
+        return _failed(
+            slack_client,
+            settings,
+            stage="번호 반응 추가",
+            outcome="메시지와 로그는 완료됐지만 번호 반응을 추가하지 못함",
+            exc=exc,
+            post=post,
+        )
+
+    return DailyRunResult("posted", post=post)

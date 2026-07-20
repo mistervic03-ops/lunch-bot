@@ -9,5 +9,4 @@ User=babgwe
 Group=babgwe
 WorkingDirectory=/opt/babgwe
 EnvironmentFile=/etc/babgwe/babgwe.env
-ExecStart=/opt/babgwe/.venv/bin/python -m babgwe
-
+ExecStart=/opt/babgwe/.venv/bin/python -m babgwe --run-daily

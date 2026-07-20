@@ -18,6 +18,7 @@ from babgwe.sheets import (
     parse_recommendation_log,
     read_lunch_options,
     read_recommendation_log,
+    update_recommendation_likes,
 )
 
 
@@ -158,6 +159,7 @@ def test_parse_recommendation_log_returns_typed_entries() -> None:
             ),
         ),
     )
+    assert result[0].sheet_row_number == 2
 
 
 def test_parse_recommendation_log_rejects_changed_header() -> None:
@@ -272,3 +274,88 @@ def test_append_recommendation_log_inserts_all_rows_once() -> None:
             ]
         },
     )
+
+
+def test_update_recommendation_likes_batches_sheet_rows() -> None:
+    service = MagicMock()
+    batch_request = service.spreadsheets.return_value.values.return_value.batchUpdate
+    batch_request.return_value.execute.return_value = {"totalUpdatedRows": 2}
+    kst = ZoneInfo("Asia/Seoul")
+    base = dict(
+        recommended_at=datetime(2026, 7, 20, 11, 0, tzinfo=kst),
+        run_date_kst=date(2026, 7, 20),
+        restaurant="식당",
+        menu="메뉴",
+        slack_channel_id="C_LUNCH",
+        slack_message_ts="123.456",
+    )
+    first = RecommendationLogEntry(position=1, sheet_row_number=2, **base)
+    second = RecommendationLogEntry(position=2, sheet_row_number=3, **base)
+
+    update_recommendation_likes(
+        service,
+        "spreadsheet-id",
+        [(first, 3), (second, 0)],
+        synced_at=datetime(2026, 7, 21, 11, 0, 5, tzinfo=kst),
+    )
+
+    batch_request.assert_called_once_with(
+        spreadsheetId="spreadsheet-id",
+        body={
+            "valueInputOption": "RAW",
+            "data": [
+                {
+                    "range": "recommendation_log!H2:I2",
+                    "values": [[3, "2026-07-21 11:00:05"]],
+                },
+                {
+                    "range": "recommendation_log!H3:I3",
+                    "values": [[0, "2026-07-21 11:00:05"]],
+                },
+            ],
+        },
+    )
+
+
+def test_update_recommendation_likes_requires_parsed_row_number() -> None:
+    entry = RecommendationLogEntry(
+        recommended_at=datetime(2026, 7, 20, 11, 0, tzinfo=ZoneInfo("Asia/Seoul")),
+        run_date_kst=date(2026, 7, 20),
+        position=1,
+        restaurant="식당",
+        menu="메뉴",
+        slack_channel_id="C_LUNCH",
+        slack_message_ts="123.456",
+    )
+
+    with pytest.raises(ValueError, match="row number"):
+        update_recommendation_likes(
+            MagicMock(),
+            "spreadsheet-id",
+            [(entry, 1)],
+            synced_at=datetime.now(tz=ZoneInfo("Asia/Seoul")),
+        )
+
+
+def test_update_recommendation_likes_rejects_partial_batch_response() -> None:
+    service = MagicMock()
+    request = service.spreadsheets.return_value.values.return_value.batchUpdate
+    request.return_value.execute.return_value = {"totalUpdatedRows": 0}
+    entry = RecommendationLogEntry(
+        recommended_at=datetime(2026, 7, 20, 11, 0, tzinfo=ZoneInfo("Asia/Seoul")),
+        run_date_kst=date(2026, 7, 20),
+        position=1,
+        restaurant="식당",
+        menu="메뉴",
+        slack_channel_id="C_LUNCH",
+        slack_message_ts="123.456",
+        sheet_row_number=2,
+    )
+
+    with pytest.raises(RuntimeError, match="updated 0 rows; expected 1"):
+        update_recommendation_likes(
+            service,
+            "spreadsheet-id",
+            [(entry, 1)],
+            synced_at=datetime.now(tz=ZoneInfo("Asia/Seoul")),
+        )

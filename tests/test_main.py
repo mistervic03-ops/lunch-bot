@@ -4,6 +4,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from babgwe import __main__
+from babgwe.job import DailyRunResult
+from babgwe.messaging import SlackPost
 from babgwe.recommendation import LunchOption
 from babgwe.sheets import LunchOptionsResult, RowIssue
 
@@ -54,3 +56,81 @@ def test_dry_run_reports_empty_sheet_without_building_message(
     assert exit_code == 1
     assert "0 active option(s)" in captured.out
     assert "No valid lunch options" in captured.err
+
+
+def test_slack_connection_test_posts_reactions_without_writing_log(
+    monkeypatch, capsys
+) -> None:
+    settings = SimpleNamespace(
+        google_service_account_file=Path("credential.json"),
+        google_spreadsheet_id="sheet-id",
+        slack_bot_token="xoxb-test",
+        lunch_channel_id="C_TEST",
+    )
+    result = LunchOptionsResult(
+        options=(LunchOption("식당", "메뉴"),), issues=()
+    )
+    client = object()
+    monkeypatch.setattr(__main__, "load_settings", lambda: settings)
+    monkeypatch.setattr(
+        __main__, "build_readonly_sheets_service", lambda credential: "service"
+    )
+    monkeypatch.setattr(
+        __main__, "read_lunch_options", lambda service, spreadsheet_id: result
+    )
+    monkeypatch.setattr(
+        __main__, "read_recommendation_log", lambda service, spreadsheet_id: ()
+    )
+    monkeypatch.setattr(__main__, "WebClient", lambda token: client)
+    monkeypatch.setattr(
+        __main__,
+        "post_daily_message",
+        lambda slack_client, channel_id, recommendations, connection_test: SlackPost(
+            "C_TEST", "123.456"
+        ),
+    )
+    monkeypatch.setattr(
+        __main__,
+        "add_candidate_reactions",
+        lambda slack_client, channel_id, message_ts, count: ("one",),
+    )
+    monkeypatch.setattr(
+        __main__,
+        "get_reaction_counts",
+        lambda slack_client, channel_id, message_ts: {"one": 1},
+    )
+
+    exit_code = __main__.main(["--test-slack"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Slack connection test posted" in captured.out
+    assert "recommendation_log was not modified" in captured.out
+
+
+def test_run_daily_builds_writable_clients_and_reports_success(
+    monkeypatch, capsys
+) -> None:
+    settings = SimpleNamespace(
+        google_service_account_file=Path("credential.json"),
+        slack_bot_token="xoxb-test",
+    )
+    slack_client = object()
+    monkeypatch.setattr(__main__, "load_settings", lambda: settings)
+    monkeypatch.setattr(
+        __main__, "build_writable_sheets_service", lambda credential: "sheets"
+    )
+    monkeypatch.setattr(__main__, "WebClient", lambda token: slack_client)
+    monkeypatch.setattr(
+        __main__,
+        "run_daily_job",
+        lambda loaded, sheets, slack: DailyRunResult(
+            "posted", SlackPost("C_LUNCH", "123.456")
+        ),
+    )
+
+    exit_code = __main__.main(["--run-daily"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "밥괘 게시 완료" in captured.out

@@ -64,6 +64,8 @@ AGENTS.md                         # 최상위 원칙과 문서 탐색 지도
     ├── features/
     │   ├── daily-recommendation.md # 정기 추천의 메시지와 예외 처리 정책
     │   └── reactions.md          # 후보별 번호 반응과 통계 데이터 수집 규칙
+    ├── integrations/
+    │   └── slack.md              # Slack Manifest, 권한, 설치·채널 연결과 인계
     └── operations/
         ├── development.md        # 현재 구현 상태, 코드 구조, 개발·검증 및 배포 템플릿 주의
         ├── google-access.md      # Google 자원의 조직 소유, 권한과 담당자 인계
@@ -80,6 +82,7 @@ AGENTS.md                         # 최상위 원칙과 문서 탐색 지도
 - Google Sheet의 열, 값 형식, 공동 편집 규칙을 확인할 때: `docs/data/google-sheets.md`
 - 정기 추천 시각, 메시지 구성, 후보 부족과 운영 오류의 처리 방식을 확인할 때: `docs/features/daily-recommendation.md`
 - 후보별 좋아요, Slack 번호 반응, 반응 집계와 통계 의미를 확인할 때: `docs/features/reactions.md`
+- Slack 앱을 생성·설치하거나 권한, 채널, 토큰 또는 담당자 인계를 확인할 때: `docs/integrations/slack.md`
 - 현재 구현 범위, 파일별 책임, 개발 환경, 테스트 또는 systemd 템플릿을 확인할 때: `docs/operations/development.md`
 - Google Sheet, Cloud 프로젝트, Service Account의 소유권이나 담당자 인계를 확인할 때: `docs/operations/google-access.md`
 - 용량, API 한도, 장기 운영 위험과 확장 시점을 확인할 때: `docs/operations/sustainability.md`

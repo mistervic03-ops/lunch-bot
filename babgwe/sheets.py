@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Sequence
@@ -68,6 +68,7 @@ class RecommendationLogEntry:
     slack_message_ts: str
     like_count: int = 0
     likes_synced_at: datetime | None = None
+    sheet_row_number: int | None = field(default=None, compare=False)
 
 
 def _build_sheets_service(credential_file: Path, scope: str) -> Any:
@@ -303,6 +304,7 @@ def parse_recommendation_log(
                 slack_message_ts=slack_message_ts,
                 like_count=like_count,
                 likes_synced_at=likes_synced_at,
+                sheet_row_number=row_number,
             )
         )
 
@@ -370,4 +372,51 @@ def append_recommendation_log(
         raise RuntimeError(
             f"recommendation_log append updated {updated_rows} rows; "
             f"expected {len(entries)}"
+        )
+
+
+def update_recommendation_likes(
+    service: Any,
+    spreadsheet_id: str,
+    updates: Sequence[tuple[RecommendationLogEntry, int]],
+    *,
+    synced_at: datetime,
+) -> None:
+    """Update like counts for parsed log rows in one Sheets API request."""
+    if not updates:
+        return
+    if synced_at.tzinfo is None or synced_at.utcoffset() is None:
+        raise ValueError("synced_at must include timezone information")
+
+    data = []
+    synced_at_text = synced_at.astimezone(KST).strftime(LOG_DATETIME_FORMAT)
+    for entry, like_count in updates:
+        if entry.sheet_row_number is None:
+            raise ValueError("like updates require a parsed Sheet row number")
+        if like_count < 0:
+            raise ValueError("like_count must be non-negative")
+        data.append(
+            {
+                "range": (
+                    f"recommendation_log!H{entry.sheet_row_number}:"
+                    f"I{entry.sheet_row_number}"
+                ),
+                "values": [[like_count, synced_at_text]],
+            }
+        )
+
+    response = (
+        service.spreadsheets()
+        .values()
+        .batchUpdate(
+            spreadsheetId=spreadsheet_id,
+            body={"valueInputOption": "RAW", "data": data},
+        )
+        .execute()
+    )
+    updated_rows = response.get("totalUpdatedRows")
+    if updated_rows != len(updates):
+        raise RuntimeError(
+            f"recommendation_log like sync updated {updated_rows} rows; "
+            f"expected {len(updates)}"
         )

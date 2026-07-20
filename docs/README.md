@@ -11,6 +11,7 @@
 - `data/google-sheets.md`: 공동 편집 Google Sheet의 데이터 구조와 관리 규칙을 설명한다.
 - `features/daily-recommendation.md`: 정기 추천의 정상 동작, 메시지 구성과 예외 처리 정책을 설명한다.
 - `features/reactions.md`: 후보별 번호 반응, 좋아요 집계와 향후 통계 활용 규칙을 설명한다.
+- `integrations/slack.md`: Slack App Manifest, 최소 권한, 앱 설치, 채널 연결과 담당자 인계를 설명한다.
 - `operations/development.md`: 현재 구현 상태, 코드 구조, 로컬 환경과 검증 및 systemd 템플릿 주의 사항을 설명한다.
 - `operations/google-access.md`: Google Sheet와 Cloud 프로젝트의 조직 소유, 권한 및 담당자 인계 절차를 설명한다.
 - `operations/sustainability.md`: 1년 이상 운영할 때의 데이터 규모, 외부 API 한도와 운영상 주의 사항을 설명한다.
