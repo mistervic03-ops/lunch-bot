@@ -3,117 +3,110 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="사내 점심 추천과 좋아요로 쌓아 올린 밥라투스트라 리더보드">
+    <meta name="description" content="사내 점심 추천과 좋아요로 쌓인 밥라투스트라 리더보드">
     <title>밥라투스트라의 전당</title>
     <link rel="stylesheet" href="/static/leaderboard.css">
   </head>
   <body>
     <div class="page-shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <p class="brand-label">밥라투스트라</p>
-          <h1>점심 리더보드</h1>
-          <p class="hero-description">
-            구성원의 추천과 좋아요로 쌓인 점심 기록입니다.
-          </p>
-        </div>
-        <div class="hero-meta">
-          {% if snapshot.likes_synced_at %}
-            <span>좋아요 집계</span>
-            <strong>{{ snapshot.likes_synced_at.strftime('%Y.%m.%d %H:%M KST') }}</strong>
-          {% else %}
-            <span>좋아요 집계</span>
-            <strong>첫 기록을 기다리는 중</strong>
-          {% endif %}
-        </div>
+      <header class="topbar">
+        <span class="brand">밥라투스트라</span>
+        <h1>점심 리더보드</h1>
+        <a class="sheet-link" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">후보 추가</a>
       </header>
 
       <main>
-        <section class="summary" aria-label="리더보드 요약">
-          <div><strong>{{ snapshot.total_menus }}</strong><span>기록된 인기 메뉴</span></div>
-          <div><strong>{{ snapshot.total_restaurants }}</strong><span>기록된 식당</span></div>
-          <div><strong>{{ snapshot.total_contributors }}</strong><span>이름을 남긴 추천인</span></div>
+        <section class="overview" aria-label="리더보드 요약">
+          <div class="summary">
+            <span><strong>{{ snapshot.total_menus }}</strong> 메뉴</span>
+            <span><strong>{{ snapshot.total_restaurants }}</strong> 식당</span>
+            <span><strong>{{ snapshot.total_contributors }}</strong> 추천인</span>
+          </div>
+          <p class="synced-at">
+            {% if snapshot.likes_synced_at %}
+              좋아요 집계 {{ snapshot.likes_synced_at.strftime('%Y.%m.%d %H:%M KST') }}
+            {% else %}
+              아직 집계된 좋아요가 없습니다
+            {% endif %}
+          </p>
         </section>
 
-        <div class="leaderboard-grid">
-          <section class="panel panel-primary">
-            <div class="panel-heading">
-              <h2>인기 메뉴</h2>
-              <p>누적 좋아요 · 추천 등장</p>
+        <section class="leaderboard-section menu-section">
+          <div class="section-heading">
+            <h2>인기 메뉴</h2>
+            <p>누적 좋아요 기준</p>
+          </div>
+          {% if snapshot.menus %}
+            <div class="menu-labels" aria-hidden="true">
+              <span></span><span>메뉴</span><span>좋아요</span><span>등장</span>
             </div>
-            {% if snapshot.menus %}
-              <ol class="standing-list">
-                {% for item in snapshot.menus %}
-                  <li class="standing-row{% if loop.index <= 3 %} top-rank{% endif %}">
-                    <span class="rank">{{ '%02d'|format(loop.index) }}</span>
-                    <div class="standing-name">
+            <ol class="menu-list">
+              {% for item in snapshot.menus %}
+                <li class="menu-row{% if loop.index <= 3 %} top-rank{% endif %}">
+                  <span class="rank">{{ '%02d'|format(loop.index) }}</span>
+                  <div class="menu-name">
+                    {% if item.map_url %}
+                      <a href="{{ item.map_url }}" target="_blank" rel="noopener noreferrer">{{ item.menu }}</a>
+                    {% else %}
                       <strong>{{ item.menu }}</strong>
-                      <span>{{ item.restaurant }}</span>
-                    </div>
-                    <div class="standing-score">
-                      <strong>{{ item.likes }}</strong><span>좋아요</span>
-                    </div>
-                    <div class="standing-subscore">
-                      <strong>{{ item.appearances }}</strong><span>회 등장</span>
-                    </div>
+                    {% endif %}
+                    <span>{{ item.restaurant }}</span>
+                  </div>
+                  <strong class="score">{{ item.likes }}</strong>
+                  <span class="appearances">{{ item.appearances }}회</span>
+                </li>
+              {% endfor %}
+            </ol>
+          {% else %}
+            <p class="empty-state">아직 좋아요 기록이 없습니다.</p>
+          {% endif %}
+        </section>
+
+        <div class="secondary-grid">
+          <section class="leaderboard-section compact-section">
+            <div class="section-heading">
+              <h2>인기 식당</h2>
+              <p>누적 좋아요 기준</p>
+            </div>
+            {% if snapshot.restaurants %}
+              <ol class="compact-list">
+                {% for item in snapshot.restaurants %}
+                  <li>
+                    <span class="rank">{{ '%02d'|format(loop.index) }}</span>
+                    {% if item.map_url %}
+                      <a href="{{ item.map_url }}" target="_blank" rel="noopener noreferrer">{{ item.restaurant }}</a>
+                    {% else %}
+                      <strong>{{ item.restaurant }}</strong>
+                    {% endif %}
+                    <span>{{ item.likes }}</span>
                   </li>
                 {% endfor %}
               </ol>
             {% else %}
-              <p class="empty-state">아직 좋아요 기록이 없습니다.</p>
+              <p class="empty-state small">아직 추천 기록이 없습니다.</p>
             {% endif %}
           </section>
 
-          <div class="side-stack">
-            <section class="panel">
-              <div class="panel-heading compact">
-                <h2>인기 식당</h2>
-                <p>식당별 누적</p>
-              </div>
-              {% if snapshot.restaurants %}
-                <ol class="compact-list">
-                  {% for item in snapshot.restaurants %}
-                    <li>
-                      <span class="rank">{{ '%02d'|format(loop.index) }}</span>
-                      <strong>{{ item.restaurant }}</strong>
-                      <span>{{ item.likes }} 좋아요</span>
-                    </li>
-                  {% endfor %}
-                </ol>
-              {% else %}
-                <p class="empty-state small">아직 추천 기록이 없습니다.</p>
-              {% endif %}
-            </section>
-
-            <section class="panel">
-              <div class="panel-heading compact">
-                <h2>추천인</h2>
-                <p>활성 후보 기준</p>
-              </div>
-              {% if snapshot.contributors %}
-                <ol class="compact-list">
-                  {% for item in snapshot.contributors %}
-                    <li>
-                      <span class="rank">{{ '%02d'|format(loop.index) }}</span>
-                      <strong>{{ item.name }}</strong>
-                      <span>{{ item.options }}개 후보</span>
-                    </li>
-                  {% endfor %}
-                </ol>
-              {% else %}
-                <p class="empty-state small">추천인 이름이 입력되면 이곳에 기록됩니다.</p>
-              {% endif %}
-            </section>
-          </div>
+          <section class="leaderboard-section compact-section">
+            <div class="section-heading">
+              <h2>추천인</h2>
+              <p>활성 후보 기준</p>
+            </div>
+            {% if snapshot.contributors %}
+              <ol class="compact-list">
+                {% for item in snapshot.contributors %}
+                  <li>
+                    <span class="rank">{{ '%02d'|format(loop.index) }}</span>
+                    <strong>{{ item.name }}</strong>
+                    <span>{{ item.options }}개</span>
+                  </li>
+                {% endfor %}
+              </ol>
+            {% else %}
+              <p class="empty-state small">아직 입력된 추천인이 없습니다.</p>
+            {% endif %}
+          </section>
         </div>
-
-        <section class="contribution-callout">
-          <div>
-            <h2>새로운 점심 후보가 있나요?</h2>
-            <p>좋아하는 식당과 메뉴를 공동 시트에 추가할 수 있습니다.</p>
-          </div>
-          <a class="sheet-button" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">점심 후보 보태기 <span>↗</span></a>
-        </section>
       </main>
 
       <footer>

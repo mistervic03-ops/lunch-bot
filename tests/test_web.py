@@ -1,10 +1,13 @@
+from datetime import date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from fastapi.testclient import TestClient
 
 from bapratustra.config import GoogleSheetsSettings
 from bapratustra.leaderboard import build_leaderboard
 from bapratustra.recommendation import LunchOption
+from bapratustra.sheets import RecommendationLogEntry
 from bapratustra.web import create_app
 
 
@@ -14,7 +17,28 @@ def _settings() -> GoogleSheetsSettings:
 
 def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     snapshot = build_leaderboard(
-        [LunchOption("가게", "메뉴", recommended_by="민지")], []
+        [
+            LunchOption(
+                "가게",
+                "메뉴",
+                map_url="https://map.example/place",
+                recommended_by="민지",
+            )
+        ],
+        [
+            RecommendationLogEntry(
+                recommended_at=datetime(
+                    2026, 7, 20, 11, 0, tzinfo=ZoneInfo("Asia/Seoul")
+                ),
+                run_date_kst=date(2026, 7, 20),
+                position=1,
+                restaurant="가게",
+                menu="메뉴",
+                slack_channel_id="C_LUNCH",
+                slack_message_ts="20.000",
+                like_count=1,
+            )
+        ],
     )
     client = TestClient(
         create_app(settings=_settings(), snapshot_loader=lambda: snapshot)
@@ -30,6 +54,11 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     assert "민지" in response.text
     assert 'href="/static/leaderboard.css"' in response.text
     assert "https://docs.google.com/spreadsheets/d/sheet-id/edit" in response.text
+    assert response.text.count('href="https://map.example/place"') == 2
+
+    font_response = client.get("/static/fonts/PretendardVariable.woff2")
+    assert font_response.status_code == 200
+    assert font_response.headers["content-type"] == "font/woff2"
 
 
 def test_leaderboard_page_returns_branded_503_without_initial_snapshot() -> None:

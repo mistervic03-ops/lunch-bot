@@ -19,6 +19,7 @@ class MenuStanding:
     menu: str
     likes: int
     appearances: int
+    map_url: str | None = None
 
 
 @dataclass(frozen=True)
@@ -26,6 +27,7 @@ class RestaurantStanding:
     restaurant: str
     likes: int
     appearances: int
+    map_url: str | None = None
 
 
 @dataclass(frozen=True)
@@ -59,6 +61,16 @@ def build_leaderboard(
         lambda: [0, 0]
     )
     restaurant_totals: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    menu_urls: dict[tuple[str, str], str] = {}
+    restaurant_urls: dict[str, str] = {}
+    for option in options:
+        if not option.map_url:
+            continue
+        restaurant = normalize_name(option.restaurant)
+        menu = normalize_name(option.menu)
+        menu_urls.setdefault((restaurant, menu), option.map_url)
+        restaurant_urls.setdefault(restaurant, option.map_url)
+
     for entry in entries:
         restaurant = normalize_name(entry.restaurant)
         menu = normalize_name(entry.menu)
@@ -69,7 +81,13 @@ def build_leaderboard(
 
     menus = sorted(
         (
-            MenuStanding(restaurant, menu, totals[0], totals[1])
+            MenuStanding(
+                restaurant,
+                menu,
+                totals[0],
+                totals[1],
+                menu_urls.get((restaurant, menu)),
+            )
             for (restaurant, menu), totals in menu_totals.items()
         ),
         key=lambda item: (
@@ -80,7 +98,12 @@ def build_leaderboard(
     )[:limit]
     restaurants = sorted(
         (
-            RestaurantStanding(restaurant, totals[0], totals[1])
+            RestaurantStanding(
+                restaurant,
+                totals[0],
+                totals[1],
+                restaurant_urls.get(restaurant),
+            )
             for restaurant, totals in restaurant_totals.items()
         ),
         key=lambda item: (-item.likes, item.restaurant.casefold()),

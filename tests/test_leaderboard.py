@@ -36,7 +36,12 @@ def _entry(
 def test_build_leaderboard_aggregates_all_three_rankings() -> None:
     snapshot = build_leaderboard(
         [
-            LunchOption("가게 A", "메뉴 A", recommended_by="민지"),
+            LunchOption(
+                "가게 A",
+                "메뉴 A",
+                map_url="https://map.example/a",
+                recommended_by="민지",
+            ),
             LunchOption("가게 A", "메뉴 B", recommended_by="민지"),
             LunchOption("가게 B", "메뉴 C", recommended_by="철수"),
             LunchOption("가게 C", "메뉴 D"),
@@ -69,6 +74,31 @@ def test_build_leaderboard_aggregates_all_three_rankings() -> None:
     assert snapshot.total_menus == 2
     assert snapshot.total_restaurants == 2
     assert snapshot.total_contributors == 2
+    assert snapshot.menus[0].map_url == "https://map.example/a"
+    assert snapshot.restaurants[0].map_url == "https://map.example/a"
+    assert snapshot.menus[1].map_url is None
+    assert snapshot.restaurants[1].map_url is None
+
+
+def test_build_leaderboard_uses_exact_menu_link_and_first_restaurant_link() -> None:
+    snapshot = build_leaderboard(
+        [
+            LunchOption("가게", "메뉴 A", map_url="https://map.example/a"),
+            LunchOption("가게", "메뉴 B", map_url="https://map.example/b"),
+        ],
+        [
+            _entry("가게", "메뉴 A", 1, day=18),
+            _entry("가게", "메뉴 B", 2, day=19),
+            _entry("가게", "과거 메뉴", 3, day=20),
+        ],
+    )
+
+    assert [item.map_url for item in snapshot.menus] == [
+        None,
+        "https://map.example/b",
+        "https://map.example/a",
+    ]
+    assert snapshot.restaurants[0].map_url == "https://map.example/a"
 
 
 def test_build_leaderboard_matches_sheet_tie_order_and_limit() -> None:
