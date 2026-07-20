@@ -313,7 +313,10 @@ def run_daily_job(
 
     try:
         post = post_daily_message(
-            slack_client, settings.lunch_channel_id, recommendations
+            slack_client,
+            settings.lunch_channel_id,
+            recommendations,
+            sheet_url=settings.lunch_sheet_url,
         )
     except Exception as exc:
         return _failed(

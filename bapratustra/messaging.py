@@ -11,6 +11,7 @@ from bapratustra.recommendation import LunchOption
 
 NUMBER_REACTIONS = ("one", "two", "three")
 KST = ZoneInfo("Asia/Seoul")
+OPEN_LUNCH_SHEET_ACTION_ID = "open_lunch_sheet"
 
 
 @dataclass(frozen=True)
@@ -59,11 +60,48 @@ def build_daily_message(recommendations: Sequence[LunchOption]) -> str:
     return "\n".join(lines)
 
 
+def _message_blocks(text: str, sheet_url: str) -> list[dict[str, Any]]:
+    return [
+        {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": text},
+        },
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "점심 후보 보태기",
+                        "emoji": True,
+                    },
+                    "url": sheet_url,
+                    "action_id": OPEN_LUNCH_SHEET_ACTION_ID,
+                }
+            ],
+        },
+    ]
+
+
+def build_onboarding_message() -> str:
+    """Build the stable channel guide intended to be pinned once."""
+    return (
+        "📜 밥라투스트라의 점심 채널에 오신 것을 환영합니다.\n\n"
+        "평일 오전 11시(KST)에 세 가지 점심 후보를 제시합니다.\n"
+        "마음이 가는 후보의 1️⃣, 2️⃣, 3️⃣ 반응을 눌러주세요. "
+        "여러 후보를 골라도 됩니다.\n"
+        "새 후보는 아래 버튼으로 누구나 보탤 수 있고, 누적 좋아요는 "
+        "시트의 ‘인기 메뉴’ 탭에서 확인할 수 있습니다."
+    )
+
+
 def post_daily_message(
     client: Any,
     channel_id: str,
     recommendations: Sequence[LunchOption],
     *,
+    sheet_url: str,
     connection_test: bool = False,
 ) -> SlackPost:
     """Post one compact message without expanding map links into previews."""
@@ -73,6 +111,26 @@ def post_daily_message(
     response = client.chat_postMessage(
         channel=channel_id,
         text=text,
+        blocks=_message_blocks(text, sheet_url),
+        unfurl_links=False,
+        unfurl_media=False,
+    )
+    posted_channel = str(response.get("channel", "")).strip()
+    message_ts = str(response.get("ts", "")).strip()
+    if not posted_channel or not message_ts:
+        raise RuntimeError("Slack post response must include channel and ts")
+    return SlackPost(channel_id=posted_channel, message_ts=message_ts)
+
+
+def post_channel_onboarding(
+    client: Any, channel_id: str, *, sheet_url: str
+) -> SlackPost:
+    """Post the one-time channel guide; pinning remains a manual admin action."""
+    text = build_onboarding_message()
+    response = client.chat_postMessage(
+        channel=channel_id,
+        text=text,
+        blocks=_message_blocks(text, sheet_url),
         unfurl_links=False,
         unfurl_media=False,
     )

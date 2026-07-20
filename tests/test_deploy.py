@@ -10,6 +10,9 @@ def test_systemd_units_use_bapratustra_identifiers() -> None:
     failure_service = (
         ROOT / "deploy" / "bapratustra-failure@.service"
     ).read_text(encoding="utf-8")
+    slack_service = (
+        ROOT / "deploy" / "bapratustra-slack.service"
+    ).read_text(encoding="utf-8")
 
     assert "User=bapratustra" in service
     assert "Group=bapratustra" in service
@@ -21,6 +24,9 @@ def test_systemd_units_use_bapratustra_identifiers() -> None:
     assert "Unit=bapratustra.service" in timer
     assert "--notify-systemd-failure %i" in failure_service
     assert "TimeoutStartSec=60" in failure_service
+    assert "python -m bapratustra --run-slack-service" in slack_service
+    assert "Restart=on-failure" in slack_service
+    assert "WantedBy=multi-user.target" in slack_service
     assert not (ROOT / "deploy" / "babgwe.service").exists()
     assert not (ROOT / "deploy" / "babgwe.timer").exists()
 
@@ -29,4 +35,5 @@ def test_example_environment_uses_new_timezone_name() -> None:
     example = (ROOT / ".env.example").read_text(encoding="utf-8")
 
     assert "BAPRATUSTRA_TIMEZONE=Asia/Seoul" in example
+    assert "SLACK_APP_TOKEN=xapp-replace-me" in example
     assert "BABGWE_TIMEZONE" not in example

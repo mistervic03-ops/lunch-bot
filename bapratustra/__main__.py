@@ -11,14 +11,17 @@ from bapratustra.config import (
     ConfigurationError,
     load_google_sheets_settings,
     load_ops_alert_settings,
+    load_slack_service_settings,
     load_settings,
 )
+from bapratustra.interactions import serve_socket_mode
 from bapratustra.job import run_daily_job, to_recommendation_history
 from bapratustra.messaging import (
     add_candidate_reactions,
     build_daily_message,
     get_reaction_counts,
     post_daily_message,
+    post_channel_onboarding,
     post_ops_alert,
 )
 from bapratustra.recommendation import select_recommendations
@@ -102,6 +105,7 @@ def run_slack_connection_test() -> int:
         slack_client,
         settings.lunch_channel_id,
         recommendations,
+        sheet_url=settings.lunch_sheet_url,
         connection_test=True,
     )
     expected_reactions = add_candidate_reactions(
@@ -122,6 +126,31 @@ def run_slack_connection_test() -> int:
     print(f"Slack connection test posted: channel={post.channel_id}, ts={post.message_ts}")
     print("Seeded reactions verified: " + ", ".join(expected_reactions))
     print("recommendation_log was not modified.")
+    return 0
+
+
+def post_onboarding() -> int:
+    """Post the channel guide once; an admin pins it in Slack afterward."""
+    settings = load_settings()
+    slack_client = WebClient(token=settings.slack_bot_token)
+    post = post_channel_onboarding(
+        slack_client,
+        settings.lunch_channel_id,
+        sheet_url=settings.lunch_sheet_url,
+    )
+    print(
+        "채널 온보딩 게시 완료: "
+        f"channel={post.channel_id}, ts={post.message_ts}; Slack에서 고정해주세요."
+    )
+    return 0
+
+
+def run_slack_service() -> int:
+    settings = load_slack_service_settings()
+    try:
+        serve_socket_mode(settings)
+    except KeyboardInterrupt:
+        print("밥라투스트라 Slack 상호작용 서비스를 종료합니다.")
     return 0
 
 
@@ -161,6 +190,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="좋아요를 집계하고 오늘의 추천을 실제 채널에 게시합니다.",
     )
     commands.add_argument(
+        "--post-onboarding",
+        action="store_true",
+        help="점심 채널 안내 메시지를 한 번 게시합니다.",
+    )
+    commands.add_argument(
+        "--run-slack-service",
+        action="store_true",
+        help="Slack 버튼 요청을 처리하는 Socket Mode 서비스를 실행합니다.",
+    )
+    commands.add_argument(
         "--notify-systemd-failure",
         metavar="UNIT",
         help="systemd 실패 unit을 운영 채널에 알립니다.",
@@ -174,6 +213,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return run_slack_connection_test()
         if args.run_daily:
             return run_daily()
+        if args.post_onboarding:
+            return post_onboarding()
+        if args.run_slack_service:
+            return run_slack_service()
         if args.notify_systemd_failure:
             return notify_systemd_failure(args.notify_systemd_failure)
         load_settings()

@@ -2,7 +2,7 @@
 
 매일 평일 오전 11시(KST), 사내 Slack 채널에 세 곳의 점심 후보를 알려주는 봇이다. 과장되게 진지한 철학자가 점심의 세 갈래 길을 선언하는 캐릭터를 사용하며, 후보는 직원들이 공동 편집하는 Google Sheet에서 가져온다.
 
-현재 저장소에는 설정 검증, 공정 순환 추천, Slack 게시와 번호 반응, Google Sheets 추천 로그와 최근 좋아요 동기화, 운영 알림을 묶은 일일 작업이 구현되어 있다. 실제 채널에서 전체 흐름을 한 차례 검증하고 서버 설정을 확정하기 전에는 `deploy/`의 timer를 활성화하지 않는다.
+현재 저장소에는 공정 순환 추천, Sheet 링크 버튼이 있는 Slack 게시, 번호 반응, Google Sheets 추천 로그와 좋아요 동기화, 채널 온보딩과 최소 Socket Mode ACK 서비스가 구현되어 있다.
 
 ## 개발 환경
 
@@ -44,6 +44,18 @@ python -m bapratustra --run-daily
 ```
 
 이 명령은 최근 다섯 추천 메시지의 좋아요를 Sheet에 갱신하고, 당일 중복 게시를 확인한 뒤 실제 점심 채널 게시, 추천 로그 기록과 번호 반응 추가를 수행한다. Slack과 Sheet를 실제로 변경하므로 테스트 용도로 반복 실행하지 않는다.
+
+채널 안내는 한 번 게시한 뒤 Slack에서 고정한다.
+
+```bash
+python -m bapratustra --post-onboarding
+```
+
+링크 버튼 요청을 ACK하는 상시 서비스는 App-Level Token이 설정된 환경에서 실행한다.
+
+```bash
+python -m bapratustra --run-slack-service
+```
 
 ## 테스트
 

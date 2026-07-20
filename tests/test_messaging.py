@@ -8,7 +8,9 @@ from bapratustra.messaging import (
     SlackPost,
     add_candidate_reactions,
     build_daily_message,
+    build_onboarding_message,
     get_reaction_counts,
+    post_channel_onboarding,
     post_daily_message,
     post_ops_alert,
 )
@@ -96,7 +98,11 @@ def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None
     recommendations = [LunchOption("가게", "메뉴")]
 
     result = post_daily_message(
-        client, "C_TEST", recommendations, connection_test=True
+        client,
+        "C_TEST",
+        recommendations,
+        sheet_url="https://docs.google.com/sheet",
+        connection_test=True,
     )
 
     assert result == SlackPost(channel_id="C_TEST", message_ts="123.456")
@@ -104,6 +110,31 @@ def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None
         channel="C_TEST",
         text="[밥라투스트라 연결 테스트]\n\n"
         + build_daily_message(recommendations),
+        blocks=[
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "[밥라투스트라 연결 테스트]\n\n"
+                    + build_daily_message(recommendations),
+                },
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "점심 후보 보태기",
+                            "emoji": True,
+                        },
+                        "url": "https://docs.google.com/sheet",
+                        "action_id": "open_lunch_sheet",
+                    }
+                ],
+            },
+        ],
         unfurl_links=False,
         unfurl_media=False,
     )
@@ -114,7 +145,31 @@ def test_post_daily_message_rejects_missing_slack_identifiers() -> None:
     client.chat_postMessage.return_value = {"ok": True}
 
     with pytest.raises(RuntimeError, match="channel and ts"):
-        post_daily_message(client, "C_TEST", [LunchOption("가게", "메뉴")])
+        post_daily_message(
+            client,
+            "C_TEST",
+            [LunchOption("가게", "메뉴")],
+            sheet_url="https://docs.google.com/sheet",
+        )
+
+
+def test_post_channel_onboarding_explains_schedule_reactions_and_sheet() -> None:
+    client = MagicMock()
+    client.chat_postMessage.return_value = {"channel": "C_TEST", "ts": "1.2"}
+
+    post = post_channel_onboarding(
+        client,
+        "C_TEST",
+        sheet_url="https://docs.google.com/sheet",
+    )
+
+    text = build_onboarding_message()
+    assert post == SlackPost("C_TEST", "1.2")
+    assert "평일 오전 11시(KST)" in text
+    assert "여러 후보를 골라도" in text
+    assert "‘인기 메뉴’ 탭" in text
+    blocks = client.chat_postMessage.call_args.kwargs["blocks"]
+    assert blocks[1]["elements"][0]["url"] == "https://docs.google.com/sheet"
 
 
 def test_add_candidate_reactions_maps_positions_to_number_emoji() -> None:

@@ -21,6 +21,13 @@ class Settings:
     google_service_account_file: Path
     timezone: ZoneInfo
 
+    @property
+    def lunch_sheet_url(self) -> str:
+        return (
+            "https://docs.google.com/spreadsheets/d/"
+            f"{self.google_spreadsheet_id}/edit"
+        )
+
 
 @dataclass(frozen=True)
 class GoogleSheetsSettings:
@@ -32,6 +39,12 @@ class GoogleSheetsSettings:
 class OpsAlertSettings:
     slack_bot_token: str
     ops_channel_id: str
+
+
+@dataclass(frozen=True)
+class SlackServiceSettings:
+    slack_app_token: str
+    slack_bot_token: str
 
 
 def _required(name: str) -> str:
@@ -69,6 +82,17 @@ def load_ops_alert_settings(
     return OpsAlertSettings(
         slack_bot_token=_required("SLACK_BOT_TOKEN"),
         ops_channel_id=_required("OPS_CHANNEL_ID"),
+    )
+
+
+def load_slack_service_settings(
+    *, dotenv_path: str | Path | None = None
+) -> SlackServiceSettings:
+    """Load only the tokens required by the Socket Mode service."""
+    load_dotenv(dotenv_path=dotenv_path, override=False)
+    return SlackServiceSettings(
+        slack_app_token=_required("SLACK_APP_TOKEN"),
+        slack_bot_token=_required("SLACK_BOT_TOKEN"),
     )
 
 

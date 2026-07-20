@@ -8,6 +8,7 @@ from bapratustra.config import (
     ConfigurationError,
     load_google_sheets_settings,
     load_ops_alert_settings,
+    load_slack_service_settings,
     load_settings,
 )
 
@@ -38,6 +39,9 @@ def test_load_settings_reads_required_values(
     assert settings.lunch_channel_id == "C_LUNCH"
     assert settings.timezone.key == "Asia/Seoul"
     assert settings.google_service_account_file == credential
+    assert settings.lunch_sheet_url == (
+        "https://docs.google.com/spreadsheets/d/sheet-id/edit"
+    )
 
 
 def test_load_settings_uses_only_new_branded_timezone_variable(
@@ -107,3 +111,24 @@ def test_load_ops_alert_settings_does_not_require_google_or_lunch_channel(
 
     assert settings.slack_bot_token == "xoxb-test"
     assert settings.ops_channel_id == "C_OPS"
+
+
+def test_load_slack_service_settings_requires_only_slack_tokens(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("SLACK_APP_TOKEN", "xapp-test")
+    monkeypatch.setenv("SLACK_BOT_TOKEN", "xoxb-test")
+    for name in (
+        "LUNCH_CHANNEL_ID",
+        "OPS_CHANNEL_ID",
+        "GOOGLE_SPREADSHEET_ID",
+        "GOOGLE_SERVICE_ACCOUNT_FILE",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    settings = load_slack_service_settings(
+        dotenv_path=tmp_path / "absent.env"
+    )
+
+    assert settings.slack_app_token == "xapp-test"
+    assert settings.slack_bot_token == "xoxb-test"

@@ -187,7 +187,8 @@ def test_run_daily_job_posts_logs_then_adds_reactions(monkeypatch) -> None:
     monkeypatch.setattr(
         job,
         "post_daily_message",
-        lambda *args: actions.append("post") or SlackPost("C_LUNCH", "123.456"),
+        lambda *args, **kwargs: actions.append("post")
+        or SlackPost("C_LUNCH", "123.456"),
     )
     monkeypatch.setattr(
         job,
@@ -236,7 +237,9 @@ def test_run_daily_job_retries_safe_sheet_reads(monkeypatch) -> None:
     monkeypatch.setattr(job, "read_recommendation_log", lambda *args: ())
     monkeypatch.setattr(job, "sync_recent_reactions", lambda *args, **kwargs: 0)
     monkeypatch.setattr(
-        job, "post_daily_message", lambda *args: SlackPost("C_LUNCH", "123.456")
+        job,
+        "post_daily_message",
+        lambda *args, **kwargs: SlackPost("C_LUNCH", "123.456"),
     )
     monkeypatch.setattr(job, "append_recommendation_log", lambda *args: None)
     monkeypatch.setattr(job, "add_candidate_reactions", lambda *args: None)
@@ -270,7 +273,9 @@ def test_run_daily_job_sync_failure_alerts_but_continues(monkeypatch) -> None:
     monkeypatch.setattr(job, "sync_recent_reactions", fail_sync)
     monkeypatch.setattr(job, "_error_id", lambda: "sync1234")
     monkeypatch.setattr(
-        job, "post_daily_message", lambda *args: SlackPost("C_LUNCH", "123.456")
+        job,
+        "post_daily_message",
+        lambda *args, **kwargs: SlackPost("C_LUNCH", "123.456"),
     )
     monkeypatch.setattr(job, "append_recommendation_log", lambda *args: None)
     monkeypatch.setattr(job, "add_candidate_reactions", lambda *args: None)
@@ -314,7 +319,7 @@ def test_run_daily_job_duplicate_syncs_likes_without_posting(monkeypatch) -> Non
         job, "sync_recent_reactions", lambda *args, **kwargs: actions.append("sync")
     )
     monkeypatch.setattr(
-        job, "post_daily_message", lambda *args: actions.append("post")
+        job, "post_daily_message", lambda *args, **kwargs: actions.append("post")
     )
 
     result = run_daily_job(
@@ -339,7 +344,9 @@ def test_run_daily_job_log_failure_does_not_add_reactions(monkeypatch) -> None:
     monkeypatch.setattr(job, "read_recommendation_log", lambda *args: ())
     monkeypatch.setattr(job, "sync_recent_reactions", lambda *args, **kwargs: 0)
     monkeypatch.setattr(
-        job, "post_daily_message", lambda *args: SlackPost("C_LUNCH", "123.456")
+        job,
+        "post_daily_message",
+        lambda *args, **kwargs: SlackPost("C_LUNCH", "123.456"),
     )
     monkeypatch.setattr(
         job,
@@ -376,7 +383,7 @@ def test_run_daily_job_post_failure_alerts_without_log(monkeypatch) -> None:
     alerts: list[str] = []
     post_attempts = 0
 
-    def fail_post(*args):
+    def fail_post(*args, **kwargs):
         nonlocal post_attempts
         post_attempts += 1
         raise RuntimeError("post failed")
@@ -423,7 +430,9 @@ def test_run_daily_job_reaction_failure_keeps_post_and_log(monkeypatch) -> None:
     monkeypatch.setattr(job, "read_recommendation_log", lambda *args: ())
     monkeypatch.setattr(job, "sync_recent_reactions", lambda *args, **kwargs: 0)
     monkeypatch.setattr(
-        job, "post_daily_message", lambda *args: SlackPost("C_LUNCH", "123.456")
+        job,
+        "post_daily_message",
+        lambda *args, **kwargs: SlackPost("C_LUNCH", "123.456"),
     )
     monkeypatch.setattr(
         job,

@@ -16,7 +16,7 @@ def test_slack_manifest_uses_only_approved_bot_scopes() -> None:
     }
 
 
-def test_slack_manifest_excludes_interactive_and_public_posting_features() -> None:
+def test_slack_manifest_enables_socket_mode_interactivity() -> None:
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
 
     assert manifest["display_information"] == {
@@ -28,8 +28,9 @@ def test_slack_manifest_excludes_interactive_and_public_posting_features() -> No
         "bot_user": {"display_name": "bapratustra", "always_online": False}
     }
     assert manifest["settings"] == {
+        "interactivity": {"is_enabled": True},
         "org_deploy_enabled": False,
-        "socket_mode_enabled": False,
+        "socket_mode_enabled": True,
         "token_rotation_enabled": False,
     }
     assert "chat:write.public" not in manifest["oauth_config"]["scopes"]["bot"]

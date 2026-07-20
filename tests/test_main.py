@@ -66,6 +66,7 @@ def test_slack_connection_test_posts_reactions_without_writing_log(
         google_spreadsheet_id="sheet-id",
         slack_bot_token="xoxb-test",
         lunch_channel_id="C_TEST",
+        lunch_sheet_url="https://docs.google.com/sheet",
     )
     result = LunchOptionsResult(
         options=(LunchOption("식당", "메뉴"),), issues=()
@@ -85,7 +86,7 @@ def test_slack_connection_test_posts_reactions_without_writing_log(
     monkeypatch.setattr(
         __main__,
         "post_daily_message",
-        lambda slack_client, channel_id, recommendations, connection_test: SlackPost(
+        lambda slack_client, channel_id, recommendations, **kwargs: SlackPost(
             "C_TEST", "123.456"
         ),
     )
@@ -172,3 +173,65 @@ def test_systemd_failure_notification_uses_only_ops_slack_settings(
         )
     ]
     assert "bapratustra.service" in captured.out
+
+
+def test_post_onboarding_uses_configured_channel_and_sheet(monkeypatch, capsys) -> None:
+    settings = SimpleNamespace(
+        slack_bot_token="xoxb-test",
+        lunch_channel_id="C_LUNCH",
+        lunch_sheet_url="https://docs.google.com/sheet",
+    )
+    client = object()
+    calls = []
+    monkeypatch.setattr(__main__, "load_settings", lambda: settings)
+    monkeypatch.setattr(__main__, "WebClient", lambda token: client)
+    monkeypatch.setattr(
+        __main__,
+        "post_channel_onboarding",
+        lambda slack_client, channel_id, **kwargs: calls.append(
+            (slack_client, channel_id, kwargs)
+        )
+        or SlackPost("C_LUNCH", "123.456"),
+    )
+
+    exit_code = __main__.main(["--post-onboarding"])
+
+    assert exit_code == 0
+    assert calls == [
+        (
+            client,
+            "C_LUNCH",
+            {"sheet_url": "https://docs.google.com/sheet"},
+        )
+    ]
+    assert "Slack에서 고정" in capsys.readouterr().out
+
+
+def test_run_slack_service_uses_minimal_service_settings(monkeypatch) -> None:
+    settings = object()
+    calls = []
+    monkeypatch.setattr(
+        __main__, "load_slack_service_settings", lambda: settings
+    )
+    monkeypatch.setattr(
+        __main__, "serve_socket_mode", lambda loaded: calls.append(loaded)
+    )
+
+    assert __main__.main(["--run-slack-service"]) == 0
+    assert calls == [settings]
+
+
+def test_run_slack_service_stops_cleanly_on_keyboard_interrupt(
+    monkeypatch, capsys
+) -> None:
+    monkeypatch.setattr(
+        __main__, "load_slack_service_settings", lambda: object()
+    )
+    monkeypatch.setattr(
+        __main__,
+        "serve_socket_mode",
+        lambda settings: (_ for _ in ()).throw(KeyboardInterrupt()),
+    )
+
+    assert __main__.main(["--run-slack-service"]) == 0
+    assert "서비스를 종료" in capsys.readouterr().out
