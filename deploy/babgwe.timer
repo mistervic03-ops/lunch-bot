@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Babgwe at 11:00 KST on weekdays
+
+[Timer]
+OnCalendar=Mon..Fri *-*-* 11:00:00 Asia/Seoul
+Unit=babgwe.service
+
+[Install]
+WantedBy=timers.target
