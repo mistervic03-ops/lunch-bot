@@ -74,6 +74,11 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     assert portrait_response.status_code == 200
     assert portrait_response.headers["content-type"] == "image/jpeg"
 
+    css_response = client.get("/static/leaderboard.css")
+    assert css_response.status_code == 200
+    assert "radial-gradient(" in css_response.text
+    assert "linear-gradient(to right" not in css_response.text
+
 
 def test_leaderboard_page_returns_branded_503_without_initial_snapshot() -> None:
     def fail():

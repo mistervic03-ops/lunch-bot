@@ -70,8 +70,20 @@ a {
   filter: grayscale(1) contrast(1.12);
   mix-blend-mode: multiply;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 36%, #000 100%);
-  mask-image: linear-gradient(to right, transparent 0%, #000 36%, #000 100%);
+  -webkit-mask-image: radial-gradient(
+    ellipse 60% 70% at 54% 45%,
+    #000 0%,
+    #000 42%,
+    rgba(0, 0, 0, 0.8) 60%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 60% 70% at 54% 45%,
+    #000 0%,
+    #000 42%,
+    rgba(0, 0, 0, 0.8) 60%,
+    transparent 100%
+  );
 }
 
 .hero-kicker,
