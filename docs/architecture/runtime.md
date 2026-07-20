@@ -2,7 +2,7 @@
 
 ## 결정
 
-밥괘 MVP는 DGX Spark 사내 서버에서 실행되는 **Python 단발성 작업**으로 구현한다. systemd timer가 월요일부터 금요일까지 오전 11시(KST)에 systemd oneshot service를 시작하고, 작업이 끝나면 Python 프로세스가 종료된다.
+밥라투스트라 MVP는 DGX Spark 사내 서버에서 실행되는 **Python 단발성 작업**으로 구현한다. systemd timer가 월요일부터 금요일까지 오전 11시(KST)에 systemd oneshot service를 시작하고, 작업이 끝나면 Python 프로세스가 종료된다.
 
 ```text
 systemd timer
@@ -108,10 +108,10 @@ MVP에서는 다음을 사용하지 않는다.
 확장할 때도 정기 게시를 반드시 상시 서비스로 옮길 필요는 없다.
 
 ```text
-babgwe.timer
+bapratustra.timer
     └── 정기 게시 작업
 
-babgwe-slack.service
+bapratustra-slack.service
     └── 향후 Slash Command와 모달
 ```
 
@@ -130,5 +130,5 @@ babgwe-slack.service
 
 - timer의 `OnCalendar`에 `Asia/Seoul`을 직접 명시한다.
 - 서버 중단 중 놓친 추천을 뒤늦게 올리면 오전 11시 게시라는 제품 약속을 어기므로 catch-up 실행을 사용하지 않는다.
-- oneshot service는 `python -m babgwe --run-daily`를 실행한다.
+- oneshot service는 `python -m bapratustra --run-daily`를 실행한다.
 - 실제 점심 채널과 운영 채널에서 한 차례 전체 흐름을 검증하고 서버 경로와 권한을 확정한 뒤 timer를 활성화한다.

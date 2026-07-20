@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 from datetime import datetime, timezone
 
-from babgwe.recommendation import (
+from bapratustra.recommendation import (
     LunchOption,
     RecommendationHistory,
     normalize_name,

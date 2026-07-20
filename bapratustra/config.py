@@ -60,12 +60,12 @@ def load_settings(*, dotenv_path: str | Path | None = None) -> Settings:
     load_dotenv(dotenv_path=dotenv_path, override=False)
     google = _google_sheets_settings()
 
-    timezone_name = os.getenv("BABGWE_TIMEZONE", "Asia/Seoul").strip()
+    timezone_name = os.getenv("BAPRATUSTRA_TIMEZONE", "Asia/Seoul").strip()
     try:
         timezone = ZoneInfo(timezone_name)
     except ZoneInfoNotFoundError as exc:
         raise ConfigurationError(
-            f"BABGWE_TIMEZONE is not a known timezone: {timezone_name}"
+            f"BAPRATUSTRA_TIMEZONE is not a known timezone: {timezone_name}"
         ) from exc
 
     return Settings(

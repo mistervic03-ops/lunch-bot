@@ -9,7 +9,7 @@ from typing import Any, Sequence
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
-from babgwe.recommendation import LunchOption
+from bapratustra.recommendation import LunchOption
 
 LUNCH_OPTIONS_HEADERS = (
     "사용",

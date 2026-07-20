@@ -7,20 +7,20 @@ from collections.abc import Sequence
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from babgwe.config import (
+from bapratustra.config import (
     ConfigurationError,
     load_google_sheets_settings,
     load_settings,
 )
-from babgwe.job import run_daily_job, to_recommendation_history
-from babgwe.messaging import (
+from bapratustra.job import run_daily_job, to_recommendation_history
+from bapratustra.messaging import (
     add_candidate_reactions,
     build_daily_message,
     get_reaction_counts,
     post_daily_message,
 )
-from babgwe.recommendation import select_recommendations
-from babgwe.sheets import (
+from bapratustra.recommendation import select_recommendations
+from bapratustra.sheets import (
     SheetSchemaError,
     build_readonly_sheets_service,
     build_writable_sheets_service,
@@ -41,14 +41,14 @@ def run_daily() -> int:
     if result.outcome == "posted":
         assert result.post is not None
         print(
-            "밥괘 게시 완료: "
+            "밥라투스트라 게시 완료: "
             f"channel={result.post.channel_id}, ts={result.post.message_ts}"
         )
         return 0
     if result.outcome == "duplicate":
-        print("오늘 이 채널의 밥괘가 이미 게시되어 종료합니다.")
+        print("오늘 이 채널의 추천이 이미 게시되어 종료합니다.")
         return 0
-    print("밥괘 일일 작업이 완료되지 않았습니다.", file=sys.stderr)
+    print("밥라투스트라 일일 작업이 완료되지 않았습니다.", file=sys.stderr)
     return 1
 
 
@@ -125,7 +125,7 @@ def run_slack_connection_test() -> int:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Validate all settings or preview the real Sheet without mutating it."""
-    parser = argparse.ArgumentParser(description="밥괘 운영 명령")
+    parser = argparse.ArgumentParser(description="밥라투스트라 운영 명령")
     commands = parser.add_mutually_exclusive_group()
     commands.add_argument(
         "--dry-run",
@@ -142,7 +142,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     commands.add_argument(
         "--run-daily",
         action="store_true",
-        help="좋아요를 집계하고 오늘의 밥괘를 실제 채널에 게시합니다.",
+        help="좋아요를 집계하고 오늘의 추천을 실제 채널에 게시합니다.",
     )
     args = parser.parse_args(argv)
 
@@ -155,7 +155,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             return run_daily()
         load_settings()
     except (ConfigurationError, SheetSchemaError) as exc:
-        print(f"밥괘 검증 실패: {exc}", file=sys.stderr)
+        print(f"밥라투스트라 검증 실패: {exc}", file=sys.stderr)
         return 2
     except SlackApiError as exc:
         error = exc.response.get("error", "unknown_error")
@@ -163,7 +163,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 3
 
     print(
-        "밥괘 전체 설정이 유효합니다. 실제 게시에는 --run-daily를 사용하세요."
+        "밥라투스트라 설정이 유효합니다. 실제 게시에는 --run-daily를 사용하세요."
     )
     return 0
 

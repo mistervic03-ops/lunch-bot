@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from babgwe.recommendation import LunchOption
+from bapratustra.recommendation import LunchOption
 
 
 NUMBER_REACTIONS = ("one", "two", "three")
@@ -24,7 +24,22 @@ def build_daily_message(recommendations: Sequence[LunchOption]) -> str:
     if not recommendations:
         raise ValueError("daily messages require at least one recommendation")
 
-    lines = ["🔮 오늘의 밥괘가 나왔습니다."]
+    if len(recommendations) == 1:
+        introduction = "오늘 확인된 점심의 운명은 하나뿐이다."
+    elif len(recommendations) == 2:
+        introduction = "오늘 보이는 점심의 길은 둘뿐이다."
+    else:
+        introduction = (
+            "점심은 스스로 정해지지 않는다. 선택되어야 한다.\n"
+            "오늘 그대들 앞에는 세 갈래의 길이 놓여 있다."
+        )
+
+    lines = [
+        "📜 밥라투스트라는 이렇게 말했다.",
+        "",
+        introduction,
+        "",
+    ]
     for index, option in enumerate(recommendations, start=1):
         details = [option.menu]
         if option.price is not None:
@@ -36,10 +51,11 @@ def build_daily_message(recommendations: Sequence[LunchOption]) -> str:
             line += f" <{option.map_url}|지도>"
         lines.append(line)
 
+    lines.append("")
     if len(recommendations) < 3:
-        lines.append(
-            "후보가 조금 부족해요. 시트에 새로운 밥괘를 더해주세요."
-        )
+        lines.append("새로운 후보는 시트에 보태주세요.")
+    else:
+        lines.append("마음이 가는 번호에 반응해주세요.")
     return "\n".join(lines)
 
 
@@ -53,7 +69,7 @@ def post_daily_message(
     """Post one compact message without expanding map links into previews."""
     text = build_daily_message(recommendations)
     if connection_test:
-        text = f"[밥괘 연결 테스트]\n\n{text}"
+        text = f"[밥라투스트라 연결 테스트]\n\n{text}"
     response = client.chat_postMessage(
         channel=channel_id,
         text=text,
@@ -108,7 +124,7 @@ def post_ops_alert(
     if alert_time.tzinfo is None or alert_time.utcoffset() is None:
         raise ValueError("occurred_at must include timezone information")
     lines = [
-        "밥괘 운영 알림",
+        "밥라투스트라 운영 알림",
         f"발생 시각: {alert_time.astimezone(KST):%Y-%m-%d %H:%M:%S} KST",
         f"단계: {stage}",
         f"결과: {outcome}",

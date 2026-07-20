@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from babgwe.config import (
+from bapratustra.config import (
     ConfigurationError,
     load_google_sheets_settings,
     load_settings,
@@ -37,6 +37,20 @@ def test_load_settings_reads_required_values(
     assert settings.lunch_channel_id == "C_LUNCH"
     assert settings.timezone.key == "Asia/Seoul"
     assert settings.google_service_account_file == credential
+
+
+def test_load_settings_uses_only_new_branded_timezone_variable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    credential = tmp_path / "service-account.json"
+    credential.write_text("{}", encoding="utf-8")
+    _set_required_env(monkeypatch, credential)
+    monkeypatch.setenv("BAPRATUSTRA_TIMEZONE", "UTC")
+    monkeypatch.setenv("BABGWE_TIMEZONE", "America/New_York")
+
+    settings = load_settings(dotenv_path=tmp_path / "absent.env")
+
+    assert settings.timezone.key == "UTC"
 
 
 def test_load_settings_rejects_missing_required_value(

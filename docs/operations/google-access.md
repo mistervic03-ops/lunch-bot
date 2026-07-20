@@ -2,7 +2,7 @@
 
 ## 목표
 
-밥괘의 Google Sheet, Cloud 프로젝트와 Service Account가 최초 개발자의 개인 계정에 종속되지 않게 한다. 최초 개발자가 조직을 떠나도 운영 담당자가 접근 권한을 복구하고 인증 정보를 교체할 수 있어야 한다.
+밥라투스트라의 Google Sheet, Cloud 프로젝트와 Service Account가 최초 개발자의 개인 계정에 종속되지 않게 한다. 최초 개발자가 조직을 떠나도 운영 담당자가 접근 권한을 복구하고 인증 정보를 교체할 수 있어야 한다.
 
 ## 현재 결정
 
@@ -16,11 +16,13 @@
 | 항목 | 현재 값 |
 |---|---|
 | 최초 소유 계정 | `mistervic03@gmail.com` |
-| Google Cloud 프로젝트 이름 | `Babgwe Lunch Bot` |
+| Google Cloud 프로젝트 이름 | `Bapratustra Lunch Bot` |
 | Google Cloud 프로젝트 ID | `babgwe-lunch-bot` |
 | Service Account | `babgwe-bot@babgwe-lunch-bot.iam.gserviceaccount.com` |
-| Google Sheet | [밥괘 점심 추천](https://docs.google.com/spreadsheets/d/1pyOGBbDwAZurNSTY0foQmTg7mojEGhYD3DzMal-WeSc/edit) |
+| Google Sheet | [밥라투스트라 점심 추천](https://docs.google.com/spreadsheets/d/1pyOGBbDwAZurNSTY0foQmTg7mojEGhYD3DzMal-WeSc/edit) |
 | Spreadsheet ID | `1pyOGBbDwAZurNSTY0foQmTg7mojEGhYD3DzMal-WeSc` |
+
+Google Cloud 프로젝트 ID, Service Account 이메일, Spreadsheet ID와 기존 로컬 인증 파일 경로는 브랜드 변경 전 생성된 외부 식별자다. 프로젝트와 Sheet의 표시 이름은 변경했지만 이 안정적인 식별자들은 재생성이나 이동의 실익이 없어 그대로 유지한다. 이후 작업자는 옛 이름이 보인다는 이유만으로 프로젝트나 Service Account를 새로 만들거나 인증 파일을 이동하지 않는다.
 
 - Cloud 프로젝트에는 Google Sheets API와 Google Drive API가 활성화되어 있다.
 - 애플리케이션 런타임은 Sheets API만 사용한다. Drive API는 초기 Sheet 생성과 Service Account 공유를 CLI로 처리하기 위해 활성화했다.
@@ -32,9 +34,9 @@
 
 ```text
 최초 개발자의 개인 Google 계정
-├── 밥괘 Google Sheet
-└── 밥괘 Google Cloud 프로젝트
-    └── 밥괘 전용 Service Account
+├── 밥라투스트라 Google Sheet
+└── 밥라투스트라 Google Cloud 프로젝트
+    └── 밥라투스트라 전용 Service Account
 
 인계 후
 ├── 정직원 후임자 Google 계정: Sheet 소유자와 Cloud 프로젝트 관리자
@@ -42,7 +44,7 @@
 └── 최초 개발자 계정: 최종 검증 후 권한 제거
 ```
 
-- 밥괘 전용 Service Account를 하나만 만들고 대상 Spreadsheet에만 편집 권한을 부여한다.
+- 점심봇 전용 Service Account를 하나만 만들고 대상 Spreadsheet에만 편집 권한을 부여한다.
 - 직원 공동 편집은 각 직원의 Google 계정에 Sheet 편집 권한을 공유하는 방식으로 운영한다.
 - 단순 편집자 공유는 소유권 인계가 아니다. 후임자가 소유권 이전 요청을 실제로 수락해야 한다.
 

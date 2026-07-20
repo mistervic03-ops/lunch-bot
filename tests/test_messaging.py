@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from babgwe.messaging import (
+from bapratustra.messaging import (
     SlackPost,
     add_candidate_reactions,
     build_daily_message,
@@ -12,13 +12,13 @@ from babgwe.messaging import (
     post_daily_message,
     post_ops_alert,
 )
-from babgwe.recommendation import LunchOption
+from bapratustra.recommendation import LunchOption
 
 
 def test_message_omits_missing_optional_fields() -> None:
     message = build_daily_message([LunchOption("가게", "메뉴")])
 
-    assert message.splitlines()[1] == "1. 가게 — 메뉴"
+    assert "1. 가게 — 메뉴" in message.splitlines()
     assert "지도" not in message
     assert "추천:" not in message
 
@@ -44,6 +44,52 @@ def test_message_rejects_zero_candidates() -> None:
         build_daily_message([])
 
 
+def test_three_candidate_message_uses_strong_character_opening() -> None:
+    message = build_daily_message(
+        [
+            LunchOption("식당 1", "메뉴 1"),
+            LunchOption("식당 2", "메뉴 2"),
+            LunchOption("식당 3", "메뉴 3"),
+        ]
+    )
+
+    assert message == (
+        "📜 밥라투스트라는 이렇게 말했다.\n\n"
+        "점심은 스스로 정해지지 않는다. 선택되어야 한다.\n"
+        "오늘 그대들 앞에는 세 갈래의 길이 놓여 있다.\n\n"
+        "1. 식당 1 — 메뉴 1\n"
+        "2. 식당 2 — 메뉴 2\n"
+        "3. 식당 3 — 메뉴 3\n\n"
+        "마음이 가는 번호에 반응해주세요."
+    )
+
+
+@pytest.mark.parametrize(
+    "recommendations, introduction",
+    [
+        (
+            [LunchOption("식당 1", "메뉴 1")],
+            "오늘 확인된 점심의 운명은 하나뿐이다.",
+        ),
+        (
+            [
+                LunchOption("식당 1", "메뉴 1"),
+                LunchOption("식당 2", "메뉴 2"),
+            ],
+            "오늘 보이는 점심의 길은 둘뿐이다.",
+        ),
+    ],
+)
+def test_shortage_message_keeps_character_but_uses_plain_guidance(
+    recommendations, introduction
+) -> None:
+    message = build_daily_message(recommendations)
+
+    assert introduction in message
+    assert message.endswith("새로운 후보는 시트에 보태주세요.")
+    assert "마음이 가는 번호" not in message
+
+
 def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None:
     client = MagicMock()
     client.chat_postMessage.return_value = {"channel": "C_TEST", "ts": "123.456"}
@@ -56,7 +102,8 @@ def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None
     assert result == SlackPost(channel_id="C_TEST", message_ts="123.456")
     client.chat_postMessage.assert_called_once_with(
         channel="C_TEST",
-        text="[밥괘 연결 테스트]\n\n" + build_daily_message(recommendations),
+        text="[밥라투스트라 연결 테스트]\n\n"
+        + build_daily_message(recommendations),
         unfurl_links=False,
         unfurl_media=False,
     )
@@ -124,7 +171,7 @@ def test_post_ops_alert_contains_only_operational_context() -> None:
     client.chat_postMessage.assert_called_once_with(
         channel="C_OPS",
         text=(
-            "밥괘 운영 알림\n"
+            "밥라투스트라 운영 알림\n"
             "발생 시각: 2026-07-20 11:00:00 KST\n"
             "단계: 최근 좋아요 집계\n"
             "결과: 기존 값을 유지함\n"

@@ -6,8 +6,8 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from babgwe.recommendation import LunchOption
-from babgwe.sheets import (
+from bapratustra.recommendation import LunchOption
+from bapratustra.sheets import (
     LUNCH_OPTIONS_HEADERS,
     RECOMMENDATION_LOG_HEADERS,
     RecommendationLogEntry,

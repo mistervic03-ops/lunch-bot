@@ -4,9 +4,9 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-import babgwe.job as job
-from babgwe.config import Settings
-from babgwe.job import (
+import bapratustra.job as job
+from bapratustra.config import Settings
+from bapratustra.job import (
     DailyRunResult,
     build_recommendation_log,
     has_completed_run,
@@ -15,9 +15,9 @@ from babgwe.job import (
     sync_recent_reactions,
     to_recommendation_history,
 )
-from babgwe.messaging import SlackPost
-from babgwe.recommendation import LunchOption
-from babgwe.sheets import LunchOptionsResult, RecommendationLogEntry, RowIssue
+from bapratustra.messaging import SlackPost
+from bapratustra.recommendation import LunchOption
+from bapratustra.sheets import LunchOptionsResult, RecommendationLogEntry, RowIssue
 
 
 KST = ZoneInfo("Asia/Seoul")

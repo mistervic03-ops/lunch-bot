@@ -1,0 +1,12 @@
+[Unit]
+Description=Bapratustra daily Slack lunch recommendation
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=bapratustra
+Group=bapratustra
+WorkingDirectory=/opt/bapratustra
+EnvironmentFile=/etc/bapratustra/bapratustra.env
+ExecStart=/opt/bapratustra/.venv/bin/python -m bapratustra --run-daily

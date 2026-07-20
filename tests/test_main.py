@@ -3,11 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
-from babgwe import __main__
-from babgwe.job import DailyRunResult
-from babgwe.messaging import SlackPost
-from babgwe.recommendation import LunchOption
-from babgwe.sheets import LunchOptionsResult, RowIssue
+from bapratustra import __main__
+from bapratustra.job import DailyRunResult
+from bapratustra.messaging import SlackPost
+from bapratustra.recommendation import LunchOption
+from bapratustra.sheets import LunchOptionsResult, RowIssue
 
 
 def _prepare_dry_run(monkeypatch, result: LunchOptionsResult) -> None:
@@ -133,4 +133,4 @@ def test_run_daily_builds_writable_clients_and_reports_success(
 
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert "밥괘 게시 완료" in captured.out
+    assert "밥라투스트라 게시 완료" in captured.out

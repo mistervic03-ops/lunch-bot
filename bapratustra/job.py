@@ -10,8 +10,8 @@ from datetime import date, datetime
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
-from babgwe.config import Settings
-from babgwe.messaging import (
+from bapratustra.config import Settings
+from bapratustra.messaging import (
     NUMBER_REACTIONS,
     SlackPost,
     add_candidate_reactions,
@@ -19,12 +19,12 @@ from babgwe.messaging import (
     post_daily_message,
     post_ops_alert,
 )
-from babgwe.recommendation import (
+from bapratustra.recommendation import (
     LunchOption,
     RecommendationHistory,
     select_recommendations,
 )
-from babgwe.sheets import (
+from bapratustra.sheets import (
     RecommendationLogEntry,
     append_recommendation_log,
     read_lunch_options,
@@ -182,7 +182,7 @@ def _failed(
     error_id = _error_id()
     if exc is not None:
         print(
-            f"밥괘 작업 실패 [{error_id}] {stage}: {type(exc).__name__}",
+            f"밥라투스트라 작업 실패 [{error_id}] {stage}: {type(exc).__name__}",
             file=sys.stderr,
         )
     _alert(

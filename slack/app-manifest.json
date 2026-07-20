@@ -1,16 +1,16 @@
 {
   "_metadata": {
     "major_version": 1,
-    "minor_version": 1
+    "minor_version": 2
   },
   "display_information": {
-    "name": "밥괘",
-    "description": "매일 오전 11시에 공개되는 오늘의 점심 운세",
+    "name": "밥라투스트라",
+    "description": "매일 오전 11시, 세 갈래 점심의 길을 제시합니다",
     "background_color": "#523078"
   },
   "features": {
     "bot_user": {
-      "display_name": "밥괘",
+      "display_name": "bapratustra",
       "always_online": false
     }
   },
