@@ -26,7 +26,7 @@ bapratustra/
 ├── leaderboard.py     # 순수 리더보드 집계와 5분 스냅샷 캐시
 ├── web.py             # FastAPI 페이지, 오류 화면과 health check
 ├── templates/         # 서버 렌더링 HTML
-├── static/            # 리더보드 CSS와 자체 호스팅 Pretendard 폰트·라이선스
+├── static/            # 리더보드 CSS, Pretendard와 공용 도메인 초상·출처
 └── job.py             # 좋아요 동기화와 전체 일일 실행 흐름
 
 tests/                 # 설정, 추천 계산, 메시지 포맷과 웹 화면 단위 테스트

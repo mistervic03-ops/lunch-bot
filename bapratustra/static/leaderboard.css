@@ -53,7 +53,25 @@ a {
 }
 
 .hero-copy {
+  position: relative;
+  z-index: 1;
   min-width: 0;
+}
+
+.hero-portrait {
+  position: absolute;
+  right: 104px;
+  bottom: 0;
+  width: 154px;
+  height: 138px;
+  object-fit: cover;
+  object-position: center 24%;
+  opacity: 0.18;
+  filter: grayscale(1) contrast(1.12);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 36%, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 36%, #000 100%);
 }
 
 .hero-kicker,
@@ -84,6 +102,7 @@ a {
   position: absolute;
   right: 20px;
   top: 20px;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -425,6 +444,12 @@ footer p {
   font-size: 0.8rem;
   font-weight: 700;
   text-underline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .hero-portrait {
+    display: none;
+  }
 }
 
 @media (max-width: 680px) {

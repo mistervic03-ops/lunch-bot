@@ -52,6 +52,11 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     assert '<span class="brand">밥라투스트라</span>' not in response.text
     assert '<p class="hero-kicker">사내 점심 기록</p>' in response.text
     assert "점심의 선택은 기록으로 남는다." in response.text
+    assert (
+        '<img class="hero-portrait" '
+        'src="/static/images/friedrich-nietzsche-1885.jpg" alt="" aria-hidden="true">'
+        in response.text
+    )
     assert "第一章" not in response.text
     assert "THE LUNCH ARCHIVE" not in response.text
     assert "민지" in response.text
@@ -62,6 +67,12 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     font_response = client.get("/static/fonts/PretendardVariable.woff2")
     assert font_response.status_code == 200
     assert font_response.headers["content-type"] == "font/woff2"
+
+    portrait_response = client.get(
+        "/static/images/friedrich-nietzsche-1885.jpg"
+    )
+    assert portrait_response.status_code == 200
+    assert portrait_response.headers["content-type"] == "image/jpeg"
 
 
 def test_leaderboard_page_returns_branded_503_without_initial_snapshot() -> None:
