@@ -28,6 +28,12 @@ class GoogleSheetsSettings:
     google_service_account_file: Path
 
 
+@dataclass(frozen=True)
+class OpsAlertSettings:
+    slack_bot_token: str
+    ops_channel_id: str
+
+
 def _required(name: str) -> str:
     value = os.getenv(name, "").strip()
     if not value:
@@ -53,6 +59,17 @@ def load_google_sheets_settings(
     """Load only the settings required for a read-only Sheets dry run."""
     load_dotenv(dotenv_path=dotenv_path, override=False)
     return _google_sheets_settings()
+
+
+def load_ops_alert_settings(
+    *, dotenv_path: str | Path | None = None
+) -> OpsAlertSettings:
+    """Load only the Slack settings required for a systemd failure alert."""
+    load_dotenv(dotenv_path=dotenv_path, override=False)
+    return OpsAlertSettings(
+        slack_bot_token=_required("SLACK_BOT_TOKEN"),
+        ops_channel_id=_required("OPS_CHANNEL_ID"),
+    )
 
 
 def load_settings(*, dotenv_path: str | Path | None = None) -> Settings:

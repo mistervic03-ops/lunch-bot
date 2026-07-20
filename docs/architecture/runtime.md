@@ -14,6 +14,11 @@ Python 단발성 작업
     ├── Slack 점심 채널 게시
     ├── Google Sheet 추천 로그 추가
     └── 실패 시 Slack 운영 채널 알림
+
+systemd가 일일 작업 실패 감지
+    ↓
+별도 Python oneshot 실패 알림
+    └── Slack 운영 채널에 journal 확인 안내
 ```
 
 ## 기술 스택
@@ -131,4 +136,7 @@ bapratustra-slack.service
 - timer의 `OnCalendar`에 `Asia/Seoul`을 직접 명시한다.
 - 서버 중단 중 놓친 추천을 뒤늦게 올리면 오전 11시 게시라는 제품 약속을 어기므로 catch-up 실행을 사용하지 않는다.
 - oneshot service는 `python -m bapratustra --run-daily`를 실행한다.
+- oneshot service가 120초를 넘기면 실패로 종료한다.
+- service의 `OnFailure`는 별도 oneshot 알림 unit을 실행한다. 이 알림은 Google 설정과 무관하게 Slack Bot Token과 운영 채널 ID만 사용한다.
+- 안전한 읽기와 좋아요 동기화만 애플리케이션에서 최대 세 번 시도하며 Slack 추천 게시와 후속 기록은 재시도하지 않는다.
 - 실제 점심 채널과 운영 채널에서 한 차례 전체 흐름을 검증하고 서버 경로와 권한을 확정한 뒤 timer를 활성화한다.

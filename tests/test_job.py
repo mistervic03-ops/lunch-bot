@@ -221,16 +221,53 @@ def test_run_daily_job_posts_logs_then_adds_reactions(monkeypatch) -> None:
     ]
 
 
+def test_run_daily_job_retries_safe_sheet_reads(monkeypatch) -> None:
+    read_attempts = 0
+    delays: list[float] = []
+
+    def read_options(*args):
+        nonlocal read_attempts
+        read_attempts += 1
+        if read_attempts < 3:
+            raise RuntimeError("temporary read failure")
+        return LunchOptionsResult((LunchOption("식당", "메뉴"),), ())
+
+    monkeypatch.setattr(job, "read_lunch_options", read_options)
+    monkeypatch.setattr(job, "read_recommendation_log", lambda *args: ())
+    monkeypatch.setattr(job, "sync_recent_reactions", lambda *args, **kwargs: 0)
+    monkeypatch.setattr(
+        job, "post_daily_message", lambda *args: SlackPost("C_LUNCH", "123.456")
+    )
+    monkeypatch.setattr(job, "append_recommendation_log", lambda *args: None)
+    monkeypatch.setattr(job, "add_candidate_reactions", lambda *args: None)
+
+    result = run_daily_job(
+        _settings(),
+        "sheets",
+        "slack",
+        now=datetime(2026, 7, 20, 11, 0, tzinfo=KST),
+        retry_sleep=delays.append,
+    )
+
+    assert result.outcome == "posted"
+    assert read_attempts == 3
+    assert delays == [2.0, 2.0]
+
+
 def test_run_daily_job_sync_failure_alerts_but_continues(monkeypatch) -> None:
     options = LunchOptionsResult((LunchOption("식당", "메뉴"),), ())
     alerts: list[tuple[str, str, str | None]] = []
+    sync_attempts = 0
+    delays: list[float] = []
+
+    def fail_sync(*args, **kwargs):
+        nonlocal sync_attempts
+        sync_attempts += 1
+        raise RuntimeError("private")
+
     monkeypatch.setattr(job, "read_lunch_options", lambda *args: options)
     monkeypatch.setattr(job, "read_recommendation_log", lambda *args: ())
-    monkeypatch.setattr(
-        job,
-        "sync_recent_reactions",
-        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("private")),
-    )
+    monkeypatch.setattr(job, "sync_recent_reactions", fail_sync)
     monkeypatch.setattr(job, "_error_id", lambda: "sync1234")
     monkeypatch.setattr(
         job, "post_daily_message", lambda *args: SlackPost("C_LUNCH", "123.456")
@@ -250,9 +287,12 @@ def test_run_daily_job_sync_failure_alerts_but_continues(monkeypatch) -> None:
         "sheets",
         "slack",
         now=datetime(2026, 7, 20, 11, 0, tzinfo=KST),
+        retry_sleep=delays.append,
     )
 
     assert result.outcome == "posted"
+    assert sync_attempts == 3
+    assert delays == [2.0, 2.0]
     assert alerts == [
         (
             "최근 좋아요 집계",
@@ -334,6 +374,13 @@ def test_run_daily_job_log_failure_does_not_add_reactions(monkeypatch) -> None:
 def test_run_daily_job_post_failure_alerts_without_log(monkeypatch) -> None:
     actions: list[str] = []
     alerts: list[str] = []
+    post_attempts = 0
+
+    def fail_post(*args):
+        nonlocal post_attempts
+        post_attempts += 1
+        raise RuntimeError("post failed")
+
     monkeypatch.setattr(
         job,
         "read_lunch_options",
@@ -341,11 +388,7 @@ def test_run_daily_job_post_failure_alerts_without_log(monkeypatch) -> None:
     )
     monkeypatch.setattr(job, "read_recommendation_log", lambda *args: ())
     monkeypatch.setattr(job, "sync_recent_reactions", lambda *args, **kwargs: 0)
-    monkeypatch.setattr(
-        job,
-        "post_daily_message",
-        lambda *args: (_ for _ in ()).throw(RuntimeError("post failed")),
-    )
+    monkeypatch.setattr(job, "post_daily_message", fail_post)
     monkeypatch.setattr(
         job, "append_recommendation_log", lambda *args: actions.append("append")
     )
@@ -364,6 +407,7 @@ def test_run_daily_job_post_failure_alerts_without_log(monkeypatch) -> None:
     )
 
     assert result == DailyRunResult("failed")
+    assert post_attempts == 1
     assert actions == []
     assert alerts == ["Slack 추천 게시"]
 

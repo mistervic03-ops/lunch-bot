@@ -134,3 +134,41 @@ def test_run_daily_builds_writable_clients_and_reports_success(
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "밥라투스트라 게시 완료" in captured.out
+
+
+def test_systemd_failure_notification_uses_only_ops_slack_settings(
+    monkeypatch, capsys
+) -> None:
+    settings = SimpleNamespace(
+        slack_bot_token="xoxb-test",
+        ops_channel_id="C_OPS",
+    )
+    client = object()
+    alerts = []
+    monkeypatch.setattr(__main__, "load_ops_alert_settings", lambda: settings)
+    monkeypatch.setattr(__main__, "WebClient", lambda token: client)
+    monkeypatch.setattr(
+        __main__,
+        "post_ops_alert",
+        lambda slack_client, channel_id, **kwargs: alerts.append(
+            (slack_client, channel_id, kwargs)
+        ),
+    )
+
+    exit_code = __main__.main(
+        ["--notify-systemd-failure", "bapratustra.service"]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert alerts == [
+        (
+            client,
+            "C_OPS",
+            {
+                "stage": "systemd 일일 작업",
+                "outcome": "bapratustra.service 실패; journal 확인 필요",
+            },
+        )
+    ]
+    assert "bapratustra.service" in captured.out

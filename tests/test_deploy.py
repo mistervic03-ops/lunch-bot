@@ -7,13 +7,20 @@ ROOT = Path(__file__).parents[1]
 def test_systemd_units_use_bapratustra_identifiers() -> None:
     service = (ROOT / "deploy" / "bapratustra.service").read_text(encoding="utf-8")
     timer = (ROOT / "deploy" / "bapratustra.timer").read_text(encoding="utf-8")
+    failure_service = (
+        ROOT / "deploy" / "bapratustra-failure@.service"
+    ).read_text(encoding="utf-8")
 
     assert "User=bapratustra" in service
     assert "Group=bapratustra" in service
     assert "WorkingDirectory=/opt/bapratustra" in service
     assert "EnvironmentFile=/etc/bapratustra/bapratustra.env" in service
     assert "python -m bapratustra --run-daily" in service
+    assert "OnFailure=bapratustra-failure@%n.service" in service
+    assert "TimeoutStartSec=120" in service
     assert "Unit=bapratustra.service" in timer
+    assert "--notify-systemd-failure %i" in failure_service
+    assert "TimeoutStartSec=60" in failure_service
     assert not (ROOT / "deploy" / "babgwe.service").exists()
     assert not (ROOT / "deploy" / "babgwe.timer").exists()
 

@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import sys
+import time
 import uuid
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, Literal
+from typing import Any, Literal, TypeVar
 from zoneinfo import ZoneInfo
 
 from bapratustra.config import Settings
@@ -34,12 +35,37 @@ from bapratustra.sheets import (
 
 
 KST = ZoneInfo("Asia/Seoul")
+SAFE_RETRY_ATTEMPTS = 3
+SAFE_RETRY_DELAY_SECONDS = 2.0
+T = TypeVar("T")
 
 
 @dataclass(frozen=True)
 class DailyRunResult:
     outcome: Literal["posted", "duplicate", "failed"]
     post: SlackPost | None = None
+
+
+def retry_safe_operation(
+    operation: Callable[[], T],
+    *,
+    stage: str,
+    sleep: Callable[[float], None] = time.sleep,
+) -> T:
+    """Retry an idempotent external operation with a small fixed delay."""
+    for attempt in range(1, SAFE_RETRY_ATTEMPTS + 1):
+        try:
+            return operation()
+        except Exception:
+            if attempt == SAFE_RETRY_ATTEMPTS:
+                raise
+            print(
+                f"{stage} 일시 실패 ({attempt}/{SAFE_RETRY_ATTEMPTS}); "
+                f"{SAFE_RETRY_DELAY_SECONDS:g}초 후 재시도",
+                file=sys.stderr,
+            )
+            sleep(SAFE_RETRY_DELAY_SECONDS)
+    raise AssertionError("retry loop must return or raise")
 
 
 def build_recommendation_log(
@@ -201,6 +227,7 @@ def run_daily_job(
     slack_client: Any,
     *,
     now: datetime | None = None,
+    retry_sleep: Callable[[float], None] = time.sleep,
 ) -> DailyRunResult:
     """Run one bounded daily recommendation job with operational alerts."""
     run_at = now or datetime.now(tz=KST)
@@ -209,11 +236,17 @@ def run_daily_job(
     run_at_kst = run_at.astimezone(KST)
 
     try:
-        options_result = read_lunch_options(
-            sheets_service, settings.google_spreadsheet_id
-        )
-        log_entries = read_recommendation_log(
-            sheets_service, settings.google_spreadsheet_id
+        options_result, log_entries = retry_safe_operation(
+            lambda: (
+                read_lunch_options(
+                    sheets_service, settings.google_spreadsheet_id
+                ),
+                read_recommendation_log(
+                    sheets_service, settings.google_spreadsheet_id
+                ),
+            ),
+            stage="Google Sheet 읽기",
+            sleep=retry_sleep,
         )
     except Exception as exc:
         return _failed(
@@ -225,12 +258,16 @@ def run_daily_job(
         )
 
     try:
-        sync_recent_reactions(
-            sheets_service,
-            slack_client,
-            settings.google_spreadsheet_id,
-            log_entries,
-            synced_at=run_at_kst,
+        retry_safe_operation(
+            lambda: sync_recent_reactions(
+                sheets_service,
+                slack_client,
+                settings.google_spreadsheet_id,
+                log_entries,
+                synced_at=run_at_kst,
+            ),
+            stage="최근 좋아요 집계",
+            sleep=retry_sleep,
         )
     except Exception as exc:
         error_id = _error_id()

@@ -10,6 +10,7 @@ from slack_sdk.errors import SlackApiError
 from bapratustra.config import (
     ConfigurationError,
     load_google_sheets_settings,
+    load_ops_alert_settings,
     load_settings,
 )
 from bapratustra.job import run_daily_job, to_recommendation_history
@@ -18,6 +19,7 @@ from bapratustra.messaging import (
     build_daily_message,
     get_reaction_counts,
     post_daily_message,
+    post_ops_alert,
 )
 from bapratustra.recommendation import select_recommendations
 from bapratustra.sheets import (
@@ -123,6 +125,20 @@ def run_slack_connection_test() -> int:
     return 0
 
 
+def notify_systemd_failure(unit_name: str) -> int:
+    """Post a generic alert when systemd reports that the daily unit failed."""
+    settings = load_ops_alert_settings()
+    slack_client = WebClient(token=settings.slack_bot_token)
+    post_ops_alert(
+        slack_client,
+        settings.ops_channel_id,
+        stage="systemd 일일 작업",
+        outcome=f"{unit_name} 실패; journal 확인 필요",
+    )
+    print(f"systemd failure alert posted: unit={unit_name}")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Validate all settings or preview the real Sheet without mutating it."""
     parser = argparse.ArgumentParser(description="밥라투스트라 운영 명령")
@@ -144,6 +160,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         action="store_true",
         help="좋아요를 집계하고 오늘의 추천을 실제 채널에 게시합니다.",
     )
+    commands.add_argument(
+        "--notify-systemd-failure",
+        metavar="UNIT",
+        help="systemd 실패 unit을 운영 채널에 알립니다.",
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -153,6 +174,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return run_slack_connection_test()
         if args.run_daily:
             return run_daily()
+        if args.notify_systemd_failure:
+            return notify_systemd_failure(args.notify_systemd_failure)
         load_settings()
     except (ConfigurationError, SheetSchemaError) as exc:
         print(f"밥라투스트라 검증 실패: {exc}", file=sys.stderr)

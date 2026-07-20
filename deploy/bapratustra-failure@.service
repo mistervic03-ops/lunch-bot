@@ -1,8 +1,7 @@
 [Unit]
-Description=Bapratustra daily Slack lunch recommendation
+Description=Notify Slack that %i failed
 After=network-online.target
 Wants=network-online.target
-OnFailure=bapratustra-failure@%n.service
 
 [Service]
 Type=oneshot
@@ -10,5 +9,5 @@ User=bapratustra
 Group=bapratustra
 WorkingDirectory=/opt/bapratustra
 EnvironmentFile=/etc/bapratustra/bapratustra.env
-ExecStart=/opt/bapratustra/.venv/bin/python -m bapratustra --run-daily
-TimeoutStartSec=120
+ExecStart=/opt/bapratustra/.venv/bin/python -m bapratustra --notify-systemd-failure %i
+TimeoutStartSec=60
