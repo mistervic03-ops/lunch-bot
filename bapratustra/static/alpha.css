@@ -124,17 +124,6 @@ main {
   margin-bottom: 28px;
 }
 
-.page-heading-with-action {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 28px;
-}
-
-.page-heading-with-action > div {
-  min-width: 0;
-}
-
 .intro h1,
 .page-heading h1 {
   margin: 0;
@@ -180,7 +169,7 @@ main {
 
 input {
   width: 100%;
-  min-height: 44px;
+  height: 44px;
   padding: 10px 12px;
   border: 1px solid #cfd2d8;
   border-radius: 6px;
@@ -225,22 +214,23 @@ summary::-webkit-details-marker {
 }
 
 summary::before {
-  width: 1rem;
-  color: var(--muted);
-  content: "›";
-  font-size: 1rem;
-  font-weight: 650;
-  transform: rotate(0);
+  width: 7px;
+  height: 7px;
+  margin: -3px 5px 0 2px;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  content: "";
+  transform: rotate(-45deg);
   transition: transform 120ms ease;
 }
 
 details[open] summary::before {
-  transform: rotate(90deg);
+  transform: rotate(45deg);
 }
 
 .optional-label {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
 }
 
@@ -255,15 +245,15 @@ details[open] summary::before {
 }
 
 .primary,
-.search button,
-.secondary-action {
+.search button {
   display: inline-flex;
-  min-height: 44px;
+  height: 44px;
   align-items: center;
   justify-content: center;
-  padding: 10px 16px;
+  padding: 0 16px;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 0.875rem;
   font-weight: 700;
   text-decoration: none;
 }
@@ -278,19 +268,6 @@ details[open] summary::before {
 .primary:hover {
   border-color: var(--accent-hover);
   background: var(--accent-hover);
-}
-
-.secondary-action {
-  flex: 0 0 auto;
-  border: 1px solid #c8cbd2;
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 0.875rem;
-}
-
-.secondary-action:hover {
-  border-color: #aaaeb6;
-  background: #f5f5f7;
 }
 
 .notice {
@@ -442,12 +419,9 @@ details[open] summary::before {
 
 .quiet-action {
   display: inline-flex;
-  min-height: 34px;
   align-items: center;
   justify-content: center;
-  padding: 6px 10px;
-  border: 1px solid #d6d8dd;
-  border-radius: 5px;
+  padding: 5px 2px;
   color: var(--accent);
   font-size: 0.8125rem;
   font-weight: 650;
@@ -455,8 +429,8 @@ details[open] summary::before {
 }
 
 .quiet-action:hover {
-  border-color: #bdb4c7;
-  background: var(--accent-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .empty {
@@ -516,12 +490,6 @@ summary:focus-visible {
     padding: 22px 18px;
   }
 
-  .page-heading-with-action {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 18px;
-  }
-
   .form-grid {
     grid-template-columns: 1fr;
   }
@@ -570,5 +538,19 @@ summary:focus-visible {
     gap: 7px;
     grid-column: 2;
     grid-row: 1 / span 3;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar nav {
+    gap: 12px;
+  }
+
+  .topbar nav a:last-child {
+    padding-left: 0;
+  }
+
+  .topbar nav a:last-child::before {
+    display: none;
   }
 }

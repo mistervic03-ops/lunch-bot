@@ -75,6 +75,7 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     assert "第一章" not in response.text
     assert "THE LUNCH ARCHIVE" not in response.text
     assert "민지" in response.text
+    assert '<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">' in response.text
     assert 'href="/static/leaderboard.css"' in response.text
     assert "https://docs.google.com/spreadsheets/d/sheet-id/edit" in response.text
     assert response.text.count('href="https://map.example/place"') == 2
@@ -88,6 +89,10 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     )
     assert portrait_response.status_code == 200
     assert portrait_response.headers["content-type"] == "image/jpeg"
+
+    favicon_response = client.get("/static/favicon.svg")
+    assert favicon_response.status_code == 200
+    assert favicon_response.headers["content-type"] == "image/svg+xml"
 
     css_response = client.get("/static/leaderboard.css")
     assert css_response.status_code == 200

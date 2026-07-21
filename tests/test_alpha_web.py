@@ -79,8 +79,13 @@ def test_contribution_page_is_simple_and_links_to_sheet() -> None:
     assert 'name="restaurant"' in response.text
     assert 'name="menu"' in response.text
     assert ">후보 등록</button>" in response.text
+    assert '<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">' in response.text
     assert "https://docs.google.com/spreadsheets/d/sheet-id/edit" in response.text
     assert client.get("/healthz").json() == {"status": "ok"}
+
+    favicon_response = client.get("/static/favicon.svg")
+    assert favicon_response.status_code == 200
+    assert favicon_response.headers["content-type"] == "image/svg+xml"
 
 
 def test_create_candidate_writes_to_sheet_and_redirects() -> None:
@@ -110,9 +115,40 @@ def test_validation_and_inactive_duplicate_do_not_write() -> None:
 
     assert invalid.status_code == 422
     assert "식당 이름을 입력해 주세요" in invalid.text
+    assert 'id="restaurant" name="restaurant"' in invalid.text
+    assert 'aria-invalid="true" aria-describedby="restaurant-error"' in invalid.text
+    assert 'id="restaurant-error"' in invalid.text
     assert duplicate.status_code == 409
     assert "추천에서 제외된 상태입니다" in duplicate.text
+    assert 'class="notice warning" role="alert"' in duplicate.text
     service.spreadsheets.return_value.values.return_value.update.assert_not_called()
+
+
+def test_optional_validation_errors_are_expanded_and_described() -> None:
+    client, service = _client([])
+
+    response = client.post(
+        "/suggest",
+        data={
+            "restaurant": "식당",
+            "menu": "메뉴",
+            "price": "만원",
+            "map_url": "map",
+        },
+        headers=ORIGIN,
+    )
+
+    assert response.status_code == 422
+    assert "<details open>" in response.text
+    assert (
+        'id="price" name="price" inputmode="numeric" value="만원" '
+        'placeholder="예: 12,000" autofocus aria-invalid="true" '
+        'aria-describedby="price-error"'
+    ) in response.text
+    assert 'aria-invalid="true" aria-describedby="map-url-error"' in response.text
+    assert 'id="price-error"' in response.text
+    assert 'id="map-url-error"' in response.text
+    service.spreadsheets.return_value.values.return_value.get.assert_not_called()
 
 
 def test_options_page_reads_active_and_inactive_sheet_rows() -> None:
@@ -135,11 +171,11 @@ def test_options_page_reads_active_and_inactive_sheet_rows() -> None:
     assert response.text.count("추천 제외") == 1
     assert 'href="https://map.example/place"' in response.text
     assert 'class="quiet-action"' in response.text
-    assert "지도 보기" in response.text
-    assert 'class="secondary-action"' in response.text
+    assert "지도 <span" in response.text
+    assert 'class="secondary-action"' not in response.text
     assert "가격 · 추천인" in response.text
     assert "Google Sheet에서 편집" not in response.text
-    assert "Google Sheet 관리" in response.text
+    assert response.text.count("Google Sheet 관리") == 2
     assert "살펴보기" not in response.text
 
 

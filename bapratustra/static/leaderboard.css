@@ -115,20 +115,20 @@ a {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
 }
 
 .primary-action {
   display: inline-flex;
-  min-width: 136px;
+  min-width: 128px;
   min-height: 44px;
   align-items: center;
   justify-content: center;
   padding: 10px 16px;
   border: 1px solid var(--purple);
   border-radius: 6px;
-  background: var(--purple);
-  color: #fff;
+  background: var(--purple-soft);
+  color: var(--purple);
   font-size: 0.875rem;
   font-weight: 700;
   text-decoration: none;
@@ -136,7 +136,8 @@ a {
 
 .primary-action:hover {
   border-color: var(--purple-dark);
-  background: var(--purple-dark);
+  background: #ebe3f1;
+  color: var(--purple-dark);
 }
 
 .secondary-action {
@@ -144,19 +145,18 @@ a {
   min-height: 44px;
   align-items: center;
   justify-content: center;
-  padding: 10px 16px;
-  border: 1px solid #cbc7d0;
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
+  padding: 10px 4px;
+  border: 0;
+  color: var(--muted);
   font-size: 0.875rem;
   font-weight: 700;
   text-decoration: none;
 }
 
 .secondary-action:hover {
-  border-color: #aaa2b2;
-  background: #f7f5f8;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .primary-action:focus-visible,
@@ -227,22 +227,10 @@ a {
 }
 
 .section-heading h2 {
-  position: relative;
   margin: 0;
-  padding-bottom: 8px;
   font-size: 1.25rem;
   font-weight: 750;
   letter-spacing: -0.035em;
-}
-
-.section-heading h2::after {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 22px;
-  height: 2px;
-  background: var(--purple);
-  content: "";
 }
 
 .section-heading p {
@@ -536,15 +524,12 @@ footer p {
   }
 
   .overview-actions {
-    width: 100%;
-    gap: 8px;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 
   .overview-actions a {
-    min-width: 0;
-    flex: 1 1 0;
-    padding-right: 10px;
-    padding-left: 10px;
+    flex: 0 0 auto;
     white-space: nowrap;
   }
 
