@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from unittest.mock import MagicMock, call
 from zoneinfo import ZoneInfo
 
@@ -53,7 +53,8 @@ def test_three_candidate_message_uses_strong_character_opening() -> None:
             LunchOption("식당 1", "메뉴 1"),
             LunchOption("식당 2", "메뉴 2"),
             LunchOption("식당 3", "메뉴 3"),
-        ]
+        ],
+        run_date_kst=date(2026, 7, 20),
     )
 
     assert message == (
@@ -65,6 +66,43 @@ def test_three_candidate_message_uses_strong_character_opening() -> None:
         "3. 식당 3 — 메뉴 3\n\n"
         "먹고 싶은 후보 번호에 반응해 주세요."
     )
+
+
+def test_three_candidate_declarations_rotate_across_weekdays() -> None:
+    recommendations = [
+        LunchOption("식당 1", "메뉴 1"),
+        LunchOption("식당 2", "메뉴 2"),
+        LunchOption("식당 3", "메뉴 3"),
+    ]
+    weekdays = [
+        date(2026, 7, 20),
+        date(2026, 7, 21),
+        date(2026, 7, 22),
+        date(2026, 7, 23),
+        date(2026, 7, 24),
+        date(2026, 7, 27),
+        date(2026, 7, 28),
+    ]
+
+    declarations = [
+        build_daily_message(recommendations, run_date_kst=day).split("\n\n")[1]
+        for day in weekdays
+    ]
+
+    assert declarations == [
+        "점심은 스스로 정해지지 않는다. 선택되어야 한다.\n"
+        "오늘 그대들 앞에는 세 갈래의 길이 놓여 있다.",
+        "오늘의 점심은 아직 정해지지 않았다.\n다만 세 가지 가능성이 여기 있다.",
+        "정오는 다가오고, 결단의 시간도 함께 온다.\n오늘의 길은 셋이다.",
+        "배고픔 앞에서 망설임은 길어지고 점심시간은 짧아진다.\n"
+        "오늘의 후보는 셋이다.",
+        "오늘의 깨달음은 멀리 있지 않다.\n점심은 이 세 곳 중 하나에 있다.",
+        "무엇을 먹을 것인가. 그것이 오늘의 가장 현실적인 물음이다.\n"
+        "세 가지 답을 가져왔다.",
+        "허기는 매일 돌아오지만, 같은 선택을 반복할 이유는 없다.\n"
+        "오늘의 세 갈래 길을 보라.",
+    ]
+    assert len(set(declarations)) == 7
 
 
 @pytest.mark.parametrize(

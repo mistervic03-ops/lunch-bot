@@ -173,6 +173,7 @@ def test_sync_recent_reactions_does_not_write_after_partial_read_failure(
 
 def test_run_daily_job_posts_logs_then_adds_reactions(monkeypatch) -> None:
     actions: list[str] = []
+    posted_dates: list[date] = []
     options = LunchOptionsResult(
         options=tuple(
             LunchOption(f"식당 {number}", f"메뉴 {number}")
@@ -186,12 +187,12 @@ def test_run_daily_job_posts_logs_then_adds_reactions(monkeypatch) -> None:
     monkeypatch.setattr(
         job, "sync_recent_reactions", lambda *args, **kwargs: actions.append("sync")
     )
-    monkeypatch.setattr(
-        job,
-        "post_daily_message",
-        lambda *args, **kwargs: actions.append("post")
-        or SlackPost("C_LUNCH", "123.456"),
-    )
+    def post_message(*args, **kwargs):
+        actions.append("post")
+        posted_dates.append(kwargs["run_date_kst"])
+        return SlackPost("C_LUNCH", "123.456")
+
+    monkeypatch.setattr(job, "post_daily_message", post_message)
     monkeypatch.setattr(
         job,
         "append_recommendation_log",
@@ -219,6 +220,7 @@ def test_run_daily_job_posts_logs_then_adds_reactions(monkeypatch) -> None:
 
     assert result == DailyRunResult("posted", SlackPost("C_LUNCH", "123.456"))
     assert actions == ["sync", "post", "append", "reactions"]
+    assert posted_dates == [date(2026, 7, 20)]
     assert alerts == [
         ("추천 후보 검증", "유효하지 않은 1개 행 제외 (9행)")
     ]

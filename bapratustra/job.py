@@ -318,6 +318,7 @@ def run_daily_job(
             recommendations,
             candidate_url=settings.candidate_url,
             leaderboard_url=settings.leaderboard_url,
+            run_date_kst=run_at_kst.date(),
         )
     except Exception as exc:
         return _failed(
