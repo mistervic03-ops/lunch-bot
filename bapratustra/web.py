@@ -11,7 +11,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from bapratustra.config import GoogleSheetsSettings, load_google_sheets_settings
+from bapratustra.config import (
+    GoogleSheetsSettings,
+    load_candidate_url,
+    load_google_sheets_settings,
+)
 from bapratustra.leaderboard import (
     LeaderboardCache,
     LeaderboardSnapshot,
@@ -43,10 +47,12 @@ def load_leaderboard_snapshot(
 def create_app(
     *,
     settings: GoogleSheetsSettings | None = None,
+    candidate_url: str | None = None,
     snapshot_loader: Callable[[], LeaderboardSnapshot] | None = None,
     cache_seconds: float = 300,
 ) -> FastAPI:
     loaded_settings = settings or load_google_sheets_settings()
+    loaded_candidate_url = candidate_url or load_candidate_url()
     loader = snapshot_loader or (
         lambda: load_leaderboard_snapshot(loaded_settings)
     )
@@ -81,6 +87,7 @@ def create_app(
             name="leaderboard.html",
             context={
                 "snapshot": snapshot,
+                "candidate_url": loaded_candidate_url,
                 "sheet_url": loaded_settings.lunch_sheet_url,
             },
         )

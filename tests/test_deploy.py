@@ -39,6 +39,12 @@ def test_systemd_units_use_bapratustra_identifiers() -> None:
     assert "Environment=PYTHON_DOTENV_DISABLED=1" in leaderboard_service
     assert "UnsetEnvironment=SLACK_BOT_TOKEN SLACK_APP_TOKEN" in leaderboard_service
     assert "BAPRATUSTRA_LEADERBOARD_URL" in leaderboard_service
+    leaderboard_unset = next(
+        line
+        for line in leaderboard_service.splitlines()
+        if line.startswith("UnsetEnvironment=")
+    )
+    assert "BAPRATUSTRA_CANDIDATE_URL" not in leaderboard_unset
     assert "uvicorn bapratustra.alpha_web:create_app --factory" in alpha_service
     assert "--host 0.0.0.0 --port 8031 --workers 1" in alpha_service
     assert "Restart=on-failure" in alpha_service

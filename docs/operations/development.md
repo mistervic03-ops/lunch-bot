@@ -55,7 +55,7 @@ cp .env.example .env
 
 실제 비밀정보는 `.env`와 저장소 밖의 Google Service Account JSON에 둔다. 두 파일은 커밋하지 않는다.
 Slack 메시지의 `전당 둘러보기` 버튼은 `BAPRATUSTRA_LEADERBOARD_URL`을 사용한다. 사내망에서 구성원이 접근할 수 있는 전체 URL을 설정하며 코드나 문서에 실제 서버 주소를 고정하지 않는다.
-`식당·메뉴 등록` 버튼은 `BAPRATUSTRA_CANDIDATE_URL`을 사용해 후보 간편 등록 화면으로 연결한다.
+Slack 메시지와 전당의 `식당·메뉴 등록` 버튼은 `BAPRATUSTRA_CANDIDATE_URL`을 사용해 후보 간편 등록 화면으로 연결한다. 전당 서비스도 이 환경변수를 전달받되 Slack 토큰과 채널 설정은 계속 제거한다.
 
 ## 검증 명령
 

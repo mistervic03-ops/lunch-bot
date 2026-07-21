@@ -16,23 +16,25 @@
           <p class="hero-note">좋아요와 추천 기록을 모았습니다.</p>
         </div>
         <img class="hero-portrait" src="/static/images/friedrich-nietzsche-1885.jpg" alt="" aria-hidden="true">
-        <a class="sheet-link" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Google Sheet에서 관리 <span aria-hidden="true">↗</span></a>
       </header>
 
       <main>
         <section class="overview" aria-label="리더보드 요약">
-          <div class="summary">
-            <span><strong>{{ snapshot.total_menus }}</strong> 메뉴</span>
-            <span><strong>{{ snapshot.total_restaurants }}</strong> 식당</span>
-            <span><strong>{{ snapshot.total_contributors }}</strong> 추천인</span>
+          <div class="overview-copy">
+            <div class="summary">
+              <span><strong>{{ snapshot.total_menus }}</strong> 메뉴</span>
+              <span><strong>{{ snapshot.total_restaurants }}</strong> 식당</span>
+              <span><strong>{{ snapshot.total_contributors }}</strong> 추천인</span>
+            </div>
+            <p class="synced-at">
+              {% if snapshot.likes_synced_at %}
+                마지막 좋아요 집계 {{ snapshot.likes_synced_at.strftime('%Y.%m.%d %H:%M KST') }}
+              {% else %}
+                아직 집계된 좋아요가 없습니다
+              {% endif %}
+            </p>
           </div>
-          <p class="synced-at">
-            {% if snapshot.likes_synced_at %}
-              마지막 좋아요 집계 {{ snapshot.likes_synced_at.strftime('%Y.%m.%d %H:%M KST') }}
-            {% else %}
-              아직 집계된 좋아요가 없습니다
-            {% endif %}
-          </p>
+          <div class="overview-actions"><a class="primary-action" href="{{ candidate_url }}">식당·메뉴 등록</a><a class="sheet-link" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Google Sheet 관리 <span aria-hidden="true">↗</span></a></div>
         </section>
 
         <section class="leaderboard-section menu-section">

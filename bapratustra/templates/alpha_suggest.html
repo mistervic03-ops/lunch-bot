@@ -1,7 +1,8 @@
 {% extends "alpha_base.html" %}
+{% block main_class %}form-page{% endblock %}
 {% block content %}
 <section class="intro">
-  <h1>점심 후보 등록</h1>
+  <h1>식당·메뉴 등록</h1>
   <p>식당과 메뉴만 입력하면 바로 등록됩니다. 가격과 지도 링크는 선택 사항입니다.</p>
 </section>
 
@@ -16,20 +17,18 @@
 {% endif %}
 
 <form class="candidate-form" method="post" action="/suggest" data-remember-name>
-  <label>식당명 <input name="restaurant" value="{{ values.get('restaurant', '') }}" required autofocus></label>
-  {% if errors.get('restaurant') %}<p class="field-error">{{ errors.restaurant }}</p>{% endif %}
-  <label>메뉴명 <input name="menu" value="{{ values.get('menu', '') }}" required></label>
-  {% if errors.get('menu') %}<p class="field-error">{{ errors.menu }}</p>{% endif %}
+  <div class="form-grid required-fields">
+    <div class="field"><label for="restaurant">식당명</label><input id="restaurant" name="restaurant" value="{{ values.get('restaurant', '') }}" required autofocus>{% if errors.get('restaurant') %}<p class="field-error">{{ errors.restaurant }}</p>{% endif %}</div>
+    <div class="field"><label for="menu">메뉴명</label><input id="menu" name="menu" value="{{ values.get('menu', '') }}" required>{% if errors.get('menu') %}<p class="field-error">{{ errors.menu }}</p>{% endif %}</div>
+  </div>
 
   <details>
     <summary><span>추가 정보 입력</span><span class="optional-label">선택</span></summary>
-    <div class="optional-fields">
-      <label>가격 <input name="price" inputmode="numeric" value="{{ values.get('price', '') }}" placeholder="예: 12,000"></label>
-      {% if errors.get('price') %}<p class="field-error">{{ errors.price }}</p>{% endif %}
-      <label>지도 링크 <input name="map_url" type="url" value="{{ values.get('map_url', '') }}" placeholder="https://..."></label>
-      {% if errors.get('map_url') %}<p class="field-error">{{ errors.map_url }}</p>{% endif %}
-      <label>추천인 <input name="recommended_by" value="{{ values.get('recommended_by', '') }}" autocomplete="name"></label>
-      <label>한 줄 메모 <input name="note" value="{{ values.get('note', '') }}" placeholder="예: 4명 이상 방문하기 좋음"></label>
+    <div class="form-grid optional-fields">
+      <div class="field"><label for="price">가격</label><input id="price" name="price" inputmode="numeric" value="{{ values.get('price', '') }}" placeholder="예: 12,000">{% if errors.get('price') %}<p class="field-error">{{ errors.price }}</p>{% endif %}</div>
+      <div class="field"><label for="recommended-by">추천인</label><input id="recommended-by" name="recommended_by" value="{{ values.get('recommended_by', '') }}" autocomplete="name"></div>
+      <div class="field"><label for="map-url">지도 링크</label><input id="map-url" name="map_url" type="url" value="{{ values.get('map_url', '') }}" placeholder="https://...">{% if errors.get('map_url') %}<p class="field-error">{{ errors.map_url }}</p>{% endif %}</div>
+      <div class="field"><label for="note">한 줄 메모</label><input id="note" name="note" value="{{ values.get('note', '') }}" placeholder="예: 4명 이상 방문하기 좋음"></div>
     </div>
   </details>
   <div class="form-actions"><button class="primary" type="submit">후보 등록</button></div>

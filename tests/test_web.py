@@ -41,7 +41,11 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
         ],
     )
     client = TestClient(
-        create_app(settings=_settings(), snapshot_loader=lambda: snapshot)
+        create_app(
+            settings=_settings(),
+            candidate_url="http://candidate.internal/suggest",
+            snapshot_loader=lambda: snapshot,
+        )
     )
 
     response = client.get("/")
@@ -54,7 +58,11 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     assert "좋아요와 추천 기록을 모았습니다." in response.text
     assert "좋아요 순위는 추천 순서에 영향을 주지 않습니다." in response.text
     assert "공정 순환 추천" not in response.text
-    assert "Google Sheet에서 관리" in response.text
+    assert 'href="http://candidate.internal/suggest"' in response.text
+    assert 'class="overview-actions"' in response.text
+    assert 'class="primary-action"' in response.text
+    assert "식당·메뉴 등록" in response.text
+    assert "Google Sheet 관리" in response.text
     assert "추천 횟수" in response.text
     assert "등록한 후보 수" in response.text
     assert (
@@ -89,7 +97,13 @@ def test_leaderboard_page_returns_branded_503_without_initial_snapshot() -> None
     def fail():
         raise RuntimeError("private")
 
-    client = TestClient(create_app(settings=_settings(), snapshot_loader=fail))
+    client = TestClient(
+        create_app(
+            settings=_settings(),
+            candidate_url="http://candidate.internal/suggest",
+            snapshot_loader=fail,
+        )
+    )
 
     response = client.get("/")
 
@@ -103,7 +117,11 @@ def test_healthz_does_not_load_google_sheet() -> None:
         raise AssertionError("health check must not load Sheets")
 
     client = TestClient(
-        create_app(settings=_settings(), snapshot_loader=fail_if_called)
+        create_app(
+            settings=_settings(),
+            candidate_url="http://candidate.internal/suggest",
+            snapshot_loader=fail_if_called,
+        )
     )
 
     response = client.get("/healthz")

@@ -51,7 +51,7 @@ input {
 
 .topbar-inner {
   display: flex;
-  width: min(880px, calc(100% - 48px));
+  width: min(920px, calc(100% - 48px));
   min-height: 68px;
   margin: 0 auto;
   align-items: center;
@@ -94,10 +94,29 @@ input {
   color: var(--ink);
 }
 
+.topbar nav a:last-child {
+  position: relative;
+  margin-left: 4px;
+  padding-left: 24px;
+}
+
+.topbar nav a:last-child::before {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 18px;
+  background: var(--line);
+  content: "";
+}
+
 main {
-  width: min(760px, calc(100% - 48px));
+  width: min(880px, calc(100% - 48px));
   margin: 0 auto;
   padding: 56px 0 88px;
+}
+
+.form-page {
+  width: min(680px, calc(100% - 48px));
 }
 
 .intro,
@@ -131,16 +150,27 @@ main {
   background: var(--surface);
 }
 
-.candidate-form label {
+.form-grid {
   display: grid;
-  gap: 7px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.field {
+  min-width: 0;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 7px;
   font-size: 0.875rem;
   font-weight: 650;
 }
 
 input {
   width: 100%;
-  padding: 11px 12px;
+  min-height: 44px;
+  padding: 10px 12px;
   border: 1px solid #cfd2d8;
   border-radius: 6px;
   background: var(--surface);
@@ -157,7 +187,7 @@ input:focus {
 }
 
 .field-error {
-  margin: -14px 0 0;
+  margin: 6px 0 0;
   color: #a12d3c;
   font-size: 0.8rem;
 }
@@ -201,8 +231,6 @@ details[open] summary::before {
 }
 
 .optional-fields {
-  display: grid;
-  gap: 18px;
   margin-top: 20px;
 }
 
@@ -214,7 +242,7 @@ details[open] summary::before {
 
 .primary,
 .search button {
-  min-height: 42px;
+  min-height: 44px;
   padding: 10px 16px;
   border-radius: 6px;
   cursor: pointer;
@@ -222,6 +250,7 @@ details[open] summary::before {
 }
 
 .primary {
+  min-width: 136px;
   border: 1px solid var(--accent);
   background: var(--accent);
   color: #fff;
@@ -267,6 +296,7 @@ details[open] summary::before {
 }
 
 .search button {
+  min-width: 72px;
   flex: 0 0 auto;
   border: 1px solid #c8cbd2;
   background: var(--surface);
@@ -285,13 +315,31 @@ details[open] summary::before {
   background: var(--surface);
 }
 
+.candidate-labels,
 .candidate {
-  display: flex;
-  min-height: 84px;
-  padding: 16px 18px;
+  display: grid;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
+  gap: 20px;
+  grid-template-columns:
+    minmax(140px, 1.1fr)
+    minmax(150px, 1.2fr)
+    minmax(150px, 1fr)
+    120px;
+}
+
+.candidate-labels {
+  min-height: 42px;
+  padding: 9px 18px;
+  border-bottom: 1px solid var(--line);
+  background: #fafafb;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.candidate {
+  min-height: 68px;
+  padding: 13px 18px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -299,41 +347,46 @@ details[open] summary::before {
   border-bottom: 0;
 }
 
-.candidate-copy {
-  min-width: 0;
-}
-
 .candidate.inactive .restaurant,
-.candidate.inactive h2,
+.candidate.inactive .menu,
 .candidate.inactive .meta {
   color: var(--muted);
 }
 
 .restaurant,
-.meta {
+.menu {
+  min-width: 0;
   margin: 0;
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-
-.candidate h2 {
-  margin: 2px 0 0;
   overflow: hidden;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.restaurant {
+  color: var(--ink);
+  font-size: 0.96875rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.menu {
+  color: #3f4147;
+  font-size: 0.90625rem;
+}
+
 .meta {
   display: flex;
-  margin-top: 5px;
-  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.84375rem;
+  gap: 7px;
+  white-space: nowrap;
 }
 
 .meta span + span::before {
-  margin-right: 6px;
+  margin-right: 7px;
   content: "·";
 }
 
@@ -341,6 +394,7 @@ details[open] summary::before {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
+  justify-content: flex-end;
   gap: 14px;
   white-space: nowrap;
 }
@@ -350,14 +404,14 @@ details[open] summary::before {
   border: 1px solid #d6d8dd;
   border-radius: 4px;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.78125rem;
   font-weight: 600;
 }
 
 .row-actions a,
 .sheet-action a {
   color: var(--accent);
-  font-size: 0.825rem;
+  font-size: 0.875rem;
   font-weight: 650;
   text-underline-offset: 3px;
 }
@@ -396,7 +450,7 @@ summary:focus-visible {
 
 @media (max-width: 680px) {
   .topbar-inner {
-    width: min(100% - 32px, 880px);
+    width: min(100% - 32px, 920px);
     min-height: auto;
     padding-top: 16px;
     align-items: flex-start;
@@ -410,13 +464,22 @@ summary:focus-visible {
     gap: 20px;
   }
 
+  .topbar nav a:last-child {
+    margin-left: 0;
+    padding-left: 20px;
+  }
+
   main {
-    width: min(100% - 32px, 760px);
+    width: min(100% - 32px, 880px);
     padding: 40px 0 64px;
   }
 
   .candidate-form {
     padding: 22px 18px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 
   .form-actions,
@@ -428,20 +491,37 @@ summary:focus-visible {
     min-width: 0;
   }
 
+  .candidate-labels {
+    display: none;
+  }
+
   .candidate {
-    min-height: 0;
-    padding: 15px 14px;
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
+    min-height: 82px;
+    padding: 14px;
+    align-items: start;
+    gap: 3px 14px;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .restaurant {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .menu {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .meta {
+    margin-top: 3px;
+    grid-column: 1;
+    grid-row: 3;
   }
 
   .row-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .row-actions a:only-child {
-    margin-left: auto;
+    align-self: center;
+    grid-column: 2;
+    grid-row: 1 / span 3;
   }
 }

@@ -6,6 +6,7 @@ import pytest
 
 from bapratustra.config import (
     ConfigurationError,
+    load_candidate_url,
     load_google_sheets_settings,
     load_ops_alert_settings,
     load_slack_service_settings,
@@ -105,6 +106,33 @@ def test_load_google_sheets_settings_does_not_require_slack(
     assert settings.lunch_sheet_url == (
         "https://docs.google.com/spreadsheets/d/sheet-id/edit"
     )
+
+
+def test_load_candidate_url_requires_only_candidate_url(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv(
+        "BAPRATUSTRA_CANDIDATE_URL", "http://candidate.internal/suggest"
+    )
+    for name in (
+        "SLACK_BOT_TOKEN",
+        "GOOGLE_SPREADSHEET_ID",
+        "GOOGLE_SERVICE_ACCOUNT_FILE",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    assert load_candidate_url(dotenv_path=tmp_path / "absent.env") == (
+        "http://candidate.internal/suggest"
+    )
+
+
+def test_load_candidate_url_rejects_missing_value(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("BAPRATUSTRA_CANDIDATE_URL", raising=False)
+
+    with pytest.raises(ConfigurationError, match="BAPRATUSTRA_CANDIDATE_URL"):
+        load_candidate_url(dotenv_path=tmp_path / "absent.env")
 
 
 def test_dotenv_loading_can_be_disabled_for_leaderboard_service(

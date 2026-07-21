@@ -83,6 +83,12 @@ def load_google_sheets_settings(
     return _google_sheets_settings()
 
 
+def load_candidate_url(*, dotenv_path: str | Path | None = None) -> str:
+    """Load only the candidate contribution URL used by web links."""
+    load_dotenv(dotenv_path=dotenv_path, override=False)
+    return _required("BAPRATUSTRA_CANDIDATE_URL")
+
+
 def load_ops_alert_settings(
     *, dotenv_path: str | Path | None = None
 ) -> OpsAlertSettings:

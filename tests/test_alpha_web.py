@@ -74,6 +74,8 @@ def test_contribution_page_is_simple_and_links_to_sheet() -> None:
     assert response.status_code == 200
     assert "식당과 메뉴만 입력하면 바로 등록됩니다" in response.text
     assert "점심의 새 가능성" not in response.text
+    assert '<main class="form-page">' in response.text
+    assert 'class="form-grid required-fields"' in response.text
     assert 'name="restaurant"' in response.text
     assert 'name="menu"' in response.text
     assert ">후보 등록</button>" in response.text
@@ -124,6 +126,8 @@ def test_options_page_reads_active_and_inactive_sheet_rows() -> None:
     response = client.get("/options")
 
     assert response.status_code == 200
+    assert '<main class="options-page">' in response.text
+    assert 'class="candidate-labels"' in response.text
     assert "활성 식당" in response.text
     assert "쉬는 식당" in response.text
     assert "추천 중" not in response.text
@@ -135,7 +139,7 @@ def test_options_page_reads_active_and_inactive_sheet_rows() -> None:
     assert "살펴보기" not in response.text
 
 
-def test_options_page_omits_empty_metadata_and_leading_separator() -> None:
+def test_options_page_keeps_missing_metadata_visually_empty() -> None:
     client, _ = _client(
         [
             [True, "추천인만 있는 식당", "메뉴", "", "", "민지"],
@@ -148,7 +152,7 @@ def test_options_page_omits_empty_metadata_and_leading_separator() -> None:
     assert response.status_code == 200
     assert ">민지 추천<" in response.text
     assert "· 민지 추천" not in response.text
-    assert response.text.count('class="meta"') == 1
+    assert '<p class="meta"></p>' in response.text
 
 
 def test_sheet_failure_returns_friendly_503() -> None:
