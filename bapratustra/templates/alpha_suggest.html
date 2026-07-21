@@ -23,7 +23,7 @@
   </div>
 
   <details>
-    <summary><span>추가 정보 입력</span><span class="optional-label">선택</span></summary>
+    <summary><span>추가 정보</span><span class="optional-label">선택 사항</span></summary>
     <div class="form-grid optional-fields">
       <div class="field"><label for="price">가격</label><input id="price" name="price" inputmode="numeric" value="{{ values.get('price', '') }}" placeholder="예: 12,000">{% if errors.get('price') %}<p class="field-error">{{ errors.price }}</p>{% endif %}</div>
       <div class="field"><label for="recommended-by">추천인</label><input id="recommended-by" name="recommended_by" value="{{ values.get('recommended_by', '') }}" autocomplete="name"></div>

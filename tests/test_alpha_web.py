@@ -134,8 +134,12 @@ def test_options_page_reads_active_and_inactive_sheet_rows() -> None:
     assert "쉬는 중" not in response.text
     assert response.text.count("추천 제외") == 1
     assert 'href="https://map.example/place"' in response.text
+    assert 'class="quiet-action"' in response.text
     assert "지도 보기" in response.text
-    assert "Google Sheet에서 편집" in response.text
+    assert 'class="secondary-action"' in response.text
+    assert "가격 · 추천인" in response.text
+    assert "Google Sheet에서 편집" not in response.text
+    assert "Google Sheet 관리" in response.text
     assert "살펴보기" not in response.text
 
 

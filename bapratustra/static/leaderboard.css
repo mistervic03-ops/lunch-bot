@@ -139,16 +139,28 @@ a {
   background: var(--purple-dark);
 }
 
-.sheet-link {
-  color: var(--purple);
+.secondary-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 1px solid #cbc7d0;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
   font-size: 0.875rem;
-  font-weight: 650;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.secondary-action:hover {
+  border-color: #aaa2b2;
+  background: #f7f5f8;
 }
 
 .primary-action:focus-visible,
-.sheet-link:focus-visible,
+.secondary-action:focus-visible,
 .menu-name a:focus-visible,
 .compact-list a:focus-visible {
   outline: 3px solid var(--purple-soft);
@@ -171,18 +183,28 @@ a {
 .summary {
   display: flex;
   align-items: center;
-  gap: 22px;
 }
 
 .summary span {
+  display: grid;
+  min-width: 72px;
+  padding: 0 18px;
+  border-left: 1px solid var(--line);
   color: var(--muted);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.summary span:first-child {
+  padding-left: 0;
+  border-left: 0;
 }
 
 .summary strong {
-  margin-right: 3px;
+  margin: 0 0 2px;
   color: var(--ink);
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
 
@@ -326,15 +348,18 @@ a {
 
 .menu-name a,
 .compact-list a {
-  text-decoration-color: #c3b4d1;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  text-decoration: none;
 }
 
 .menu-name a:hover,
-.compact-list a:hover {
+.compact-list a:hover,
+.menu-name a:focus-visible,
+.compact-list a:focus-visible {
   color: var(--purple);
+  text-decoration-line: underline;
   text-decoration-color: var(--purple);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .menu-name span {
@@ -506,13 +531,21 @@ footer p {
   .overview {
     align-items: flex-start;
     flex-direction: column;
-    gap: 10px;
+    gap: 20px;
     padding-bottom: 32px;
   }
 
   .overview-actions {
     width: 100%;
-    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .overview-actions a {
+    min-width: 0;
+    flex: 1 1 0;
+    padding-right: 10px;
+    padding-left: 10px;
+    white-space: nowrap;
   }
 
   .menu-labels,

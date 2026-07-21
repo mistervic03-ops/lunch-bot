@@ -2,19 +2,21 @@
 {% block title %}등록된 점심 후보{% endblock %}
 {% block main_class %}options-page{% endblock %}
 {% block content %}
-<section class="page-heading"><h1>등록된 점심 후보</h1><p>현재 등록된 식당과 메뉴입니다. 수정하거나 추천에서 제외하려면 Google Sheet를 이용해 주세요.</p></section>
+<section class="page-heading page-heading-with-action">
+  <div><h1>등록된 점심 후보</h1><p>현재 등록된 식당과 메뉴입니다. 수정하거나 추천에서 제외하려면 Google Sheet를 이용해 주세요.</p></div>
+  <a class="secondary-action" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Google Sheet 관리</a>
+</section>
 <form class="search" method="get"><label class="sr-only" for="candidate-search">후보 검색</label><input id="candidate-search" name="q" value="{{ query }}" placeholder="식당 또는 메뉴 검색"><button type="submit">검색</button></form>
 {% if service_error %}<aside class="notice warning">Google Sheet에서 후보를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.</aside>{% endif %}
 <div class="candidate-list">
-{% if candidates %}<div class="candidate-labels" aria-hidden="true"><span>식당</span><span>메뉴</span><span>정보</span><span></span></div>{% endif %}
+{% if candidates %}<div class="candidate-labels" aria-hidden="true"><span>식당</span><span>메뉴</span><span>가격 · 추천인</span><span></span></div>{% endif %}
 {% for candidate in candidates %}
   <article class="candidate {% if not candidate.active %}inactive{% endif %}">
     <strong class="restaurant">{{ candidate.option.restaurant }}</strong>
     <span class="menu">{{ candidate.option.menu }}</span>
     <p class="meta">{% if candidate.option.price is not none %}<span>{{ '{:,}'.format(candidate.option.price) }}원</span>{% endif %}{% if candidate.option.recommended_by %}<span>{{ candidate.option.recommended_by }} 추천</span>{% endif %}</p>
-    <div class="row-actions">{% if not candidate.active %}<span class="status">추천 제외</span>{% endif %}{% if candidate.option.map_url %}<a href="{{ candidate.option.map_url }}" target="_blank" rel="noopener noreferrer">지도 보기</a>{% endif %}</div>
+    <div class="row-actions">{% if not candidate.active %}<span class="status">추천 제외</span>{% endif %}{% if candidate.option.map_url %}<a class="quiet-action" href="{{ candidate.option.map_url }}" target="_blank" rel="noopener noreferrer">지도 보기</a>{% endif %}</div>
   </article>
 {% else %}<p class="empty">{% if query %}검색 결과가 없습니다.{% else %}등록된 후보가 없습니다.{% endif %}</p>{% endfor %}
 </div>
-<p class="sheet-action"><a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Google Sheet에서 편집</a></p>
 {% endblock %}

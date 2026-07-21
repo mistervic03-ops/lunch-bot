@@ -61,6 +61,8 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     assert 'href="http://candidate.internal/suggest"' in response.text
     assert 'class="overview-actions"' in response.text
     assert 'class="primary-action"' in response.text
+    assert 'class="secondary-action"' in response.text
+    assert 'class="sheet-link"' not in response.text
     assert "식당·메뉴 등록" in response.text
     assert "Google Sheet 관리" in response.text
     assert "추천 횟수" in response.text
