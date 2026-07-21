@@ -1,18 +1,18 @@
 {% extends "alpha_base.html" %}
-{% block title %}점심 후보 둘러보기{% endblock %}
+{% block title %}등록된 점심 후보{% endblock %}
 {% block content %}
-<section class="page-heading"><h1>점심 후보 둘러보기</h1><p>자세한 수정과 일괄 관리는 익숙한 Sheet에서 할 수 있습니다.</p></section>
-<form class="search" method="get"><input name="q" value="{{ query }}" placeholder="식당이나 메뉴 찾기"><button type="submit">찾기</button></form>
-{% if service_error %}<aside class="notice warning">지금은 Sheet에서 후보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.</aside>{% endif %}
+<section class="page-heading"><h1>등록된 점심 후보</h1><p>현재 등록된 식당과 메뉴입니다. 수정하거나 추천에서 제외하려면 Google Sheet를 이용해 주세요.</p></section>
+<form class="search" method="get"><label class="sr-only" for="candidate-search">후보 검색</label><input id="candidate-search" name="q" value="{{ query }}" placeholder="식당 또는 메뉴 검색"><button type="submit">검색</button></form>
+{% if service_error %}<aside class="notice warning">Google Sheet에서 후보를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.</aside>{% endif %}
 <div class="candidate-list">
 {% for candidate in candidates %}
   <article class="candidate {% if not candidate.active %}inactive{% endif %}">
-    <div><p class="restaurant">{{ candidate.option.restaurant }}</p><h2>{{ candidate.option.menu }}</h2>
-      <p class="meta">{% if candidate.option.price is not none %}{{ '{:,}'.format(candidate.option.price) }}원{% endif %}{% if candidate.option.recommended_by %} · {{ candidate.option.recommended_by }} 추천{% endif %}</p>
+    <div class="candidate-copy"><p class="restaurant">{{ candidate.option.restaurant }}</p><h2>{{ candidate.option.menu }}</h2>
+      {% if candidate.option.price is not none or candidate.option.recommended_by %}<p class="meta">{% if candidate.option.price is not none %}<span>{{ '{:,}'.format(candidate.option.price) }}원</span>{% endif %}{% if candidate.option.recommended_by %}<span>{{ candidate.option.recommended_by }} 추천</span>{% endif %}</p>{% endif %}
     </div>
-    <div class="row-actions"><span class="status">{{ '추천 중' if candidate.active else '쉬는 중' }}</span>{% if candidate.option.map_url %}<a href="{{ candidate.option.map_url }}" target="_blank" rel="noopener noreferrer">지도</a>{% endif %}</div>
+    <div class="row-actions">{% if not candidate.active %}<span class="status">추천 제외</span>{% endif %}{% if candidate.option.map_url %}<a href="{{ candidate.option.map_url }}" target="_blank" rel="noopener noreferrer">지도 보기</a>{% endif %}</div>
   </article>
-{% else %}<p class="empty">조건에 맞는 후보가 없습니다.</p>{% endfor %}
+{% else %}<p class="empty">{% if query %}검색 결과가 없습니다.{% else %}등록된 후보가 없습니다.{% endif %}</p>{% endfor %}
 </div>
-<p class="sheet-action"><a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Sheet에서 자세히 수정하기</a></p>
+<p class="sheet-action"><a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Google Sheet에서 편집</a></p>
 {% endblock %}

@@ -63,7 +63,7 @@ def test_three_candidate_message_uses_strong_character_opening() -> None:
         "1. 식당 1 — 메뉴 1\n"
         "2. 식당 2 — 메뉴 2\n"
         "3. 식당 3 — 메뉴 3\n\n"
-        "마음이 가는 번호에 반응해주세요."
+        "먹고 싶은 후보 번호에 반응해 주세요."
     )
 
 
@@ -89,8 +89,8 @@ def test_shortage_message_keeps_character_but_uses_plain_guidance(
     message = build_daily_message(recommendations)
 
     assert introduction in message
-    assert message.endswith("새로운 후보는 아래 버튼으로 보태주세요.")
-    assert "마음이 가는 번호" not in message
+    assert message.endswith("새 후보는 아래 버튼에서 등록할 수 있습니다.")
+    assert "먹고 싶은 후보 번호" not in message
 
 
 def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None:
@@ -128,7 +128,7 @@ def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "점심 후보 보태기",
+                            "text": "식당·메뉴 등록",
                             "emoji": True,
                         },
                         "url": "http://candidate.internal/suggest",
@@ -138,7 +138,7 @@ def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "전당 둘러보기",
+                            "text": "전당 보기",
                             "emoji": True,
                         },
                         "url": "http://leaderboard.internal:8030/",
@@ -180,7 +180,7 @@ def test_post_channel_onboarding_explains_schedule_reactions_and_sheet() -> None
     text = build_onboarding_message()
     assert post == SlackPost("C_TEST", "1.2")
     assert "평일 오전 11시(KST)" in text
-    assert "여러 후보를 골라도" in text
+    assert "여러 곳을 골라도" in text
     assert "‘밥라투스트라의 전당’" in text
     blocks = client.chat_postMessage.call_args.kwargs["blocks"]
     assert blocks[1]["elements"][0]["url"] == "http://candidate.internal/suggest"
@@ -188,7 +188,7 @@ def test_post_channel_onboarding_explains_schedule_reactions_and_sheet() -> None
         "type": "button",
         "text": {
             "type": "plain_text",
-            "text": "전당 둘러보기",
+            "text": "전당 보기",
             "emoji": True,
         },
         "url": "http://leaderboard.internal:8030/",

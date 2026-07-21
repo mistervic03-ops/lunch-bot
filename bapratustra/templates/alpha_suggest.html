@@ -1,38 +1,37 @@
 {% extends "alpha_base.html" %}
 {% block content %}
 <section class="intro">
-  <p class="eyebrow">점심의 새 가능성</p>
-  <h1>함께 먹고 싶은 한 끼를 보태주세요.</h1>
-  <p>식당과 메뉴만 적으면 끝입니다. 나머지는 알고 있을 때만 알려주세요.</p>
+  <h1>점심 후보 등록</h1>
+  <p>식당과 메뉴만 입력하면 바로 등록됩니다. 가격과 지도 링크는 선택 사항입니다.</p>
 </section>
 
-{% if created %}<aside class="notice success">점심 후보를 Sheet에 보탰습니다.</aside>{% endif %}
-{% if service_error %}<aside class="notice warning">지금은 Sheet에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</aside>{% endif %}
+{% if created %}<aside class="notice success">후보가 등록되었습니다.</aside>{% endif %}
+{% if service_error %}<aside class="notice warning">Google Sheet에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.</aside>{% endif %}
 {% if duplicate %}
 <aside class="notice warning">
-  <strong>이미 같은 후보가 있습니다.</strong>
-  <span>{{ duplicate.option.restaurant }} · {{ duplicate.option.menu }}{% if not duplicate.active %} · 현재 추천에서 제외됨{% endif %}</span>
-  <a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Sheet에서 확인하기</a>
+  <strong>이미 등록된 후보입니다.</strong>
+  <span>{{ duplicate.option.restaurant }} · {{ duplicate.option.menu }}{% if not duplicate.active %} · 추천에서 제외된 상태입니다{% endif %}</span>
+  <a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Google Sheet에서 확인</a>
 </aside>
 {% endif %}
 
 <form class="candidate-form" method="post" action="/suggest" data-remember-name>
-  <label>식당 <input name="restaurant" value="{{ values.get('restaurant', '') }}" required autofocus></label>
+  <label>식당명 <input name="restaurant" value="{{ values.get('restaurant', '') }}" required autofocus></label>
   {% if errors.get('restaurant') %}<p class="field-error">{{ errors.restaurant }}</p>{% endif %}
-  <label>추천 메뉴 <input name="menu" value="{{ values.get('menu', '') }}" required></label>
+  <label>메뉴명 <input name="menu" value="{{ values.get('menu', '') }}" required></label>
   {% if errors.get('menu') %}<p class="field-error">{{ errors.menu }}</p>{% endif %}
 
   <details>
-    <summary>가격, 지도 링크 같은 정보도 보태기</summary>
+    <summary><span>추가 정보 입력</span><span class="optional-label">선택</span></summary>
     <div class="optional-fields">
-      <label>가격 <input name="price" inputmode="numeric" value="{{ values.get('price', '') }}" placeholder="예: 12000"></label>
+      <label>가격 <input name="price" inputmode="numeric" value="{{ values.get('price', '') }}" placeholder="예: 12,000"></label>
       {% if errors.get('price') %}<p class="field-error">{{ errors.price }}</p>{% endif %}
       <label>지도 링크 <input name="map_url" type="url" value="{{ values.get('map_url', '') }}" placeholder="https://..."></label>
       {% if errors.get('map_url') %}<p class="field-error">{{ errors.map_url }}</p>{% endif %}
       <label>추천인 <input name="recommended_by" value="{{ values.get('recommended_by', '') }}" autocomplete="name"></label>
-      <label>한줄 메모 <input name="note" value="{{ values.get('note', '') }}" placeholder="예: 4명 이상 가기 좋아요"></label>
+      <label>한 줄 메모 <input name="note" value="{{ values.get('note', '') }}" placeholder="예: 4명 이상 방문하기 좋음"></label>
     </div>
   </details>
-  <button class="primary" type="submit">이 후보 보태기</button>
+  <div class="form-actions"><button class="primary" type="submit">후보 등록</button></div>
 </form>
 {% endblock %}

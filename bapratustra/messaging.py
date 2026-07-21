@@ -55,9 +55,9 @@ def build_daily_message(recommendations: Sequence[LunchOption]) -> str:
 
     lines.append("")
     if len(recommendations) < 3:
-        lines.append("새로운 후보는 아래 버튼으로 보태주세요.")
+        lines.append("새 후보는 아래 버튼에서 등록할 수 있습니다.")
     else:
-        lines.append("마음이 가는 번호에 반응해주세요.")
+        lines.append("먹고 싶은 후보 번호에 반응해 주세요.")
     return "\n".join(lines)
 
 
@@ -76,7 +76,7 @@ def _message_blocks(
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "점심 후보 보태기",
+                        "text": "식당·메뉴 등록",
                         "emoji": True,
                     },
                     "url": candidate_url,
@@ -86,7 +86,7 @@ def _message_blocks(
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "전당 둘러보기",
+                        "text": "전당 보기",
                         "emoji": True,
                     },
                     "url": leaderboard_url,
@@ -101,10 +101,10 @@ def build_onboarding_message() -> str:
     """Build the stable channel guide intended to be pinned once."""
     return (
         "📜 밥라투스트라의 점심 채널에 오신 것을 환영합니다.\n\n"
-        "평일 오전 11시(KST)에 세 가지 점심 후보를 제시합니다.\n"
-        "마음이 가는 후보의 1️⃣, 2️⃣, 3️⃣ 반응을 눌러주세요. "
-        "여러 후보를 골라도 됩니다.\n"
-        "새 후보는 아래 버튼으로 누구나 보탤 수 있고, 누적 좋아요와 순위는 "
+        "평일 오전 11시(KST)에 점심 후보 세 곳을 올립니다.\n"
+        "먹고 싶은 후보 번호의 1️⃣, 2️⃣, 3️⃣ 반응을 눌러 주세요. "
+        "여러 곳을 골라도 됩니다.\n"
+        "새 후보는 아래 버튼에서 등록할 수 있고, 누적 좋아요와 순위는 "
         "‘밥라투스트라의 전당’에서 확인할 수 있습니다."
     )
 

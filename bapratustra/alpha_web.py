@@ -39,15 +39,15 @@ def validate_candidate(values: dict[str, str]) -> LunchOption:
     menu = normalize_name(values.get("menu", ""))
     errors: dict[str, str] = {}
     if not restaurant:
-        errors["restaurant"] = "식당 이름을 입력해주세요."
+        errors["restaurant"] = "식당 이름을 입력해 주세요."
     if not menu:
-        errors["menu"] = "추천 메뉴를 입력해주세요."
+        errors["menu"] = "메뉴 이름을 입력해 주세요."
 
     price_text = values.get("price", "").strip().replace(",", "")
     price: int | None = None
     if price_text:
         if not price_text.isdigit():
-            errors["price"] = "가격은 0 이상의 숫자로 입력해주세요."
+            errors["price"] = "가격은 0 이상의 숫자만 입력할 수 있습니다."
         else:
             price = int(price_text)
 
@@ -55,7 +55,7 @@ def validate_candidate(values: dict[str, str]) -> LunchOption:
     if map_url:
         parsed = urlparse(map_url)
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-            errors["map_url"] = "http 또는 https로 시작하는 링크를 입력해주세요."
+            errors["map_url"] = "http 또는 https로 시작하는 링크를 입력해 주세요."
 
     if errors:
         raise CandidateValidationError(errors)
@@ -109,7 +109,7 @@ def create_app(
     )
 
     app = FastAPI(
-        title="점심 후보 보태기",
+        title="식당·메뉴 등록",
         docs_url=None,
         redoc_url=None,
         openapi_url=None,

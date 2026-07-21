@@ -3,17 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}점심 후보 보태기{% endblock %}</title>
+  <title>{% block title %}식당·메뉴 등록{% endblock %}</title>
   <link rel="stylesheet" href="/static/alpha.css">
 </head>
 <body>
   <header class="topbar">
-    <a class="wordmark" href="/suggest">밥라투스트라</a>
-    <nav aria-label="주요 메뉴">
-      <a href="/suggest">후보 보태기</a>
-      <a href="/options">후보 둘러보기</a>
-      <a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Sheet에서 관리</a>
-    </nav>
+    <div class="topbar-inner">
+      <a class="wordmark" href="/suggest">밥라투스트라</a>
+      <nav aria-label="주요 메뉴">
+        <a{% if request.url.path == '/suggest' %} class="active" aria-current="page"{% endif %} href="/suggest">식당·메뉴 등록</a>
+        <a{% if request.url.path == '/options' %} class="active" aria-current="page"{% endif %} href="/options">등록된 후보</a>
+        <a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Google Sheet 관리</a>
+      </nav>
+    </div>
   </header>
   <main>{% block content %}{% endblock %}</main>
   <script src="/static/alpha.js" defer></script>

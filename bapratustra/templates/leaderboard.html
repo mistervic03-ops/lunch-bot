@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="사내 점심 추천과 좋아요로 쌓인 밥라투스트라 리더보드">
+    <meta name="description" content="사내 점심 추천과 좋아요 기록을 보여주는 밥라투스트라의 전당">
     <title>밥라투스트라의 전당</title>
     <link rel="stylesheet" href="/static/leaderboard.css">
   </head>
@@ -11,12 +11,12 @@
     <div class="page-shell">
       <header class="hero">
         <div class="hero-copy">
-          <p class="hero-kicker">우리가 고른 점심들</p>
+          <p class="hero-kicker">우리의 점심 기록</p>
           <h1>밥라투스트라의 전당</h1>
-          <p class="hero-note">점심의 선택은 기록으로 남는다.</p>
+          <p class="hero-note">좋아요와 추천 기록을 모았습니다.</p>
         </div>
         <img class="hero-portrait" src="/static/images/friedrich-nietzsche-1885.jpg" alt="" aria-hidden="true">
-        <a class="sheet-link" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">점심 후보 보태기 <span aria-hidden="true">↗</span></a>
+        <a class="sheet-link" href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Google Sheet에서 관리 <span aria-hidden="true">↗</span></a>
       </header>
 
       <main>
@@ -28,7 +28,7 @@
           </div>
           <p class="synced-at">
             {% if snapshot.likes_synced_at %}
-              좋아요 집계 {{ snapshot.likes_synced_at.strftime('%Y.%m.%d %H:%M KST') }}
+              마지막 좋아요 집계 {{ snapshot.likes_synced_at.strftime('%Y.%m.%d %H:%M KST') }}
             {% else %}
               아직 집계된 좋아요가 없습니다
             {% endif %}
@@ -42,7 +42,7 @@
           </div>
           {% if snapshot.menus %}
             <div class="menu-labels" aria-hidden="true">
-              <span></span><span>메뉴</span><span>좋아요</span><span>등장</span>
+              <span></span><span>메뉴</span><span>좋아요</span><span>추천 횟수</span>
             </div>
             <ol class="menu-list">
               {% for item in snapshot.menus %}
@@ -94,7 +94,7 @@
           <section class="leaderboard-section compact-section">
             <div class="section-heading">
               <h2>추천인</h2>
-              <p>활성 후보 기준</p>
+              <p>등록한 후보 수</p>
             </div>
             {% if snapshot.contributors %}
               <ol class="compact-list">
@@ -107,14 +107,14 @@
                 {% endfor %}
               </ol>
             {% else %}
-              <p class="empty-state small">아직 입력된 추천인이 없습니다.</p>
+              <p class="empty-state small">등록된 추천인이 없습니다.</p>
             {% endif %}
           </section>
         </div>
       </main>
 
       <footer>
-        <p>인기가 높아도 더 자주 추천되지는 않습니다.</p>
+        <p>좋아요 순위는 추천 순서에 영향을 주지 않습니다.</p>
       </footer>
     </div>
   </body>

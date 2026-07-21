@@ -50,11 +50,13 @@ def test_leaderboard_page_renders_snapshot_and_sheet_link() -> None:
     assert "밥라투스트라의 전당" in response.text
     assert "인기 메뉴" in response.text
     assert '<span class="brand">밥라투스트라</span>' not in response.text
-    assert '<p class="hero-kicker">우리가 고른 점심들</p>' in response.text
-    assert "점심의 선택은 기록으로 남는다." in response.text
-    assert "인기가 높아도 더 자주 추천되지는 않습니다." in response.text
+    assert '<p class="hero-kicker">우리의 점심 기록</p>' in response.text
+    assert "좋아요와 추천 기록을 모았습니다." in response.text
+    assert "좋아요 순위는 추천 순서에 영향을 주지 않습니다." in response.text
     assert "공정 순환 추천" not in response.text
-    assert "점심 후보 보태기" in response.text
+    assert "Google Sheet에서 관리" in response.text
+    assert "추천 횟수" in response.text
+    assert "등록한 후보 수" in response.text
     assert (
         '<img class="hero-portrait" '
         'src="/static/images/friedrich-nietzsche-1885.jpg" alt="" aria-hidden="true">'
@@ -92,7 +94,7 @@ def test_leaderboard_page_returns_branded_503_without_initial_snapshot() -> None
     response = client.get("/")
 
     assert response.status_code == 503
-    assert "잠시 길을 잃었습니다" in response.text
+    assert "전당을 불러오지 못했습니다" in response.text
     assert "private" not in response.text
 
 

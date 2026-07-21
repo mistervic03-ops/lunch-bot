@@ -72,9 +72,11 @@ def test_contribution_page_is_simple_and_links_to_sheet() -> None:
     response = client.get("/suggest")
 
     assert response.status_code == 200
-    assert "식당과 메뉴만 적으면 끝입니다" in response.text
+    assert "식당과 메뉴만 입력하면 바로 등록됩니다" in response.text
+    assert "점심의 새 가능성" not in response.text
     assert 'name="restaurant"' in response.text
     assert 'name="menu"' in response.text
+    assert ">후보 등록</button>" in response.text
     assert "https://docs.google.com/spreadsheets/d/sheet-id/edit" in response.text
     assert client.get("/healthz").json() == {"status": "ok"}
 
@@ -105,9 +107,9 @@ def test_validation_and_inactive_duplicate_do_not_write() -> None:
     )
 
     assert invalid.status_code == 422
-    assert "식당 이름을 입력해주세요" in invalid.text
+    assert "식당 이름을 입력해 주세요" in invalid.text
     assert duplicate.status_code == 409
-    assert "현재 추천에서 제외됨" in duplicate.text
+    assert "추천에서 제외된 상태입니다" in duplicate.text
     service.spreadsheets.return_value.values.return_value.append.assert_not_called()
 
 
@@ -124,11 +126,29 @@ def test_options_page_reads_active_and_inactive_sheet_rows() -> None:
     assert response.status_code == 200
     assert "활성 식당" in response.text
     assert "쉬는 식당" in response.text
-    assert "추천 중" in response.text
-    assert "쉬는 중" in response.text
+    assert "추천 중" not in response.text
+    assert "쉬는 중" not in response.text
+    assert response.text.count("추천 제외") == 1
     assert 'href="https://map.example/place"' in response.text
-    assert "Sheet에서 자세히 수정하기" in response.text
+    assert "지도 보기" in response.text
+    assert "Google Sheet에서 편집" in response.text
     assert "살펴보기" not in response.text
+
+
+def test_options_page_omits_empty_metadata_and_leading_separator() -> None:
+    client, _ = _client(
+        [
+            [True, "추천인만 있는 식당", "메뉴", "", "", "민지"],
+            [True, "부가 정보 없는 식당", "메뉴"],
+        ]
+    )
+
+    response = client.get("/options")
+
+    assert response.status_code == 200
+    assert ">민지 추천<" in response.text
+    assert "· 민지 추천" not in response.text
+    assert response.text.count('class="meta"') == 1
 
 
 def test_sheet_failure_returns_friendly_503() -> None:
