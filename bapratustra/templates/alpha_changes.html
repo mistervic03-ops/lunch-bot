@@ -1,0 +1,10 @@
+{% extends "alpha_base.html" %}
+{% block title %}최근 수정{% endblock %}
+{% block content %}
+<section class="page-heading"><h1>최근 수정</h1><p>누가 무엇을 바꿨는지 확인합니다.</p></section>
+<div class="change-list">
+{% for change in changes %}
+  <article class="change"><div><strong>{{ change.after.restaurant }} · {{ change.after.menu }}</strong><p>{{ {'create':'새 후보', 'import':'시트에서 가져옴', 'update':'정보 수정', 'deactivate':'추천에서 제외', 'reactivate':'추천에 복귀'}.get(change.action, change.action) }}{% if change.actor %} · {{ change.actor }}{% endif %}</p></div></article>
+{% else %}<p class="empty">아직 수정 기록이 없습니다.</p>{% endfor %}
+</div>
+{% endblock %}

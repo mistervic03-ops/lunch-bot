@@ -58,6 +58,18 @@ class LunchOptionsResult:
 
 
 @dataclass(frozen=True)
+class LunchOptionRow:
+    active: bool
+    option: LunchOption
+
+
+@dataclass(frozen=True)
+class LunchOptionRowsResult:
+    rows: tuple[LunchOptionRow, ...]
+    issues: tuple[RowIssue, ...]
+
+
+@dataclass(frozen=True)
 class RecommendationLogEntry:
     recommended_at: datetime
     run_date_kst: date
@@ -132,8 +144,10 @@ def _map_url(value: object) -> str | None:
     return text
 
 
-def parse_lunch_options(rows: Sequence[Sequence[object]]) -> LunchOptionsResult:
-    """Validate raw A:G values and return active options plus row-level issues."""
+def parse_lunch_option_rows(
+    rows: Sequence[Sequence[object]], *, include_inactive: bool = True
+) -> LunchOptionRowsResult:
+    """Validate raw A:G values while preserving active and inactive rows."""
     if not rows:
         raise SheetSchemaError("lunch_options is empty and has no header row")
 
@@ -144,7 +158,7 @@ def parse_lunch_options(rows: Sequence[Sequence[object]]) -> LunchOptionsResult:
             + ", ".join(LUNCH_OPTIONS_HEADERS)
         )
 
-    options: list[LunchOption] = []
+    parsed_rows: list[LunchOptionRow] = []
     issues: list[RowIssue] = []
     for row_number, raw_row in enumerate(rows[1:], start=2):
         values = list(raw_row[: len(LUNCH_OPTIONS_HEADERS)])
@@ -154,10 +168,12 @@ def parse_lunch_options(rows: Sequence[Sequence[object]]) -> LunchOptionsResult:
             continue
 
         active = _active(values[0])
-        if active is False:
+        if active is False and not any(_text(value) for value in values[1:]):
             continue
         if active is None:
             issues.append(RowIssue(row_number, "active must be TRUE or FALSE"))
+            continue
+        if not active and not include_inactive:
             continue
 
         restaurant = _text(values[1])
@@ -173,18 +189,29 @@ def parse_lunch_options(rows: Sequence[Sequence[object]]) -> LunchOptionsResult:
             issues.append(RowIssue(row_number, str(exc)))
             continue
 
-        options.append(
-            LunchOption(
-                restaurant=restaurant,
-                menu=menu,
-                price=price,
-                map_url=map_url,
-                recommended_by=_text(values[5]) or None,
-                note=_text(values[6]) or None,
+        parsed_rows.append(
+            LunchOptionRow(
+                active=active,
+                option=LunchOption(
+                    restaurant=restaurant,
+                    menu=menu,
+                    price=price,
+                    map_url=map_url,
+                    recommended_by=_text(values[5]) or None,
+                    note=_text(values[6]) or None,
+                ),
             )
         )
 
-    return LunchOptionsResult(tuple(options), tuple(issues))
+    return LunchOptionRowsResult(tuple(parsed_rows), tuple(issues))
+
+
+def parse_lunch_options(rows: Sequence[Sequence[object]]) -> LunchOptionsResult:
+    """Validate raw A:G values and return active options plus row-level issues."""
+    result = parse_lunch_option_rows(rows, include_inactive=False)
+    return LunchOptionsResult(
+        tuple(row.option for row in result.rows if row.active), result.issues
+    )
 
 
 def read_lunch_options(service: Any, spreadsheet_id: str) -> LunchOptionsResult:
@@ -201,6 +228,24 @@ def read_lunch_options(service: Any, spreadsheet_id: str) -> LunchOptionsResult:
         .execute()
     )
     return parse_lunch_options(response.get("values", []))
+
+
+def read_lunch_option_rows(
+    service: Any, spreadsheet_id: str
+) -> LunchOptionRowsResult:
+    """Fetch all valid lunch options for a read-only migration snapshot."""
+    response = (
+        service.spreadsheets()
+        .values()
+        .get(
+            spreadsheetId=spreadsheet_id,
+            range=LUNCH_OPTIONS_RANGE,
+            majorDimension="ROWS",
+            valueRenderOption="UNFORMATTED_VALUE",
+        )
+        .execute()
+    )
+    return parse_lunch_option_rows(response.get("values", []))
 
 
 def _log_error(row_number: int, reason: str) -> SheetSchemaError:

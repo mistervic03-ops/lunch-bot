@@ -2,7 +2,7 @@
 
 ## 결정
 
-밥라투스트라는 사내 서버에서 서로 책임이 다른 세 실행 경로를 사용한다. 정기 추천은 단발성 작업으로 유지하고, Slack 링크 버튼 ACK와 사내 리더보드는 각각 작은 상시 서비스로 분리한다.
+밥라투스트라는 사내 서버에서 서로 책임이 다른 세 운영 실행 경로를 사용한다. 정기 추천은 단발성 작업으로 유지하고, Slack 링크 버튼 ACK와 사내 리더보드는 각각 작은 상시 서비스로 분리한다. 이 경로와 분리된 후보 관리 알파가 있으며 아직 운영 데이터 원본은 아니다.
 
 ```text
 systemd timer
@@ -27,6 +27,13 @@ bapratustra-leaderboard.service
     ├── 사내망 HTTP 요청 처리
     ├── Google Sheet 읽기와 5분 캐시
     └── 읽기 전용 리더보드 HTML 제공
+
+후보 관리 알파 (별도 포트와 별도 DB)
+    ├── SQLite 후보·추천 기록·변경 이력
+    ├── 후보 추가·검색·수정·비활성화
+    ├── systemd가 비정상 종료 시 자동 재시작
+    ├── 매일 03:30 KST 백업 후 최근 30개 보존
+    └── 현재 봇과 전당에는 연결하지 않음
 ```
 
 ## 기술 스택
@@ -36,7 +43,7 @@ bapratustra-leaderboard.service
 | 언어 | Python 3.11 이상 |
 | 의존성 격리 | Python `venv` |
 | 의존성 명세 | 버전을 고정한 `requirements.txt` |
-| 실행 | 정기 추천은 systemd oneshot, Slack 상호작용과 리더보드는 각각 systemd 상시 service |
+| 실행 | 정기 추천은 systemd oneshot, Slack 상호작용과 리더보드는 각각 systemd 상시 service; 후보 관리 알파는 별도 실행 |
 | 일정 | systemd timer |
 | Slack | 공식 `slack_sdk`로 Web API 호출과 Socket Mode 연결 |
 | 웹 | FastAPI, Uvicorn 단일 worker와 Jinja 서버 렌더링 |
@@ -70,7 +77,7 @@ MVP에서는 다음을 사용하지 않는다.
 - Slack Bolt
 - Slash Command와 Slack 이벤트 구독
 - APScheduler 같은 프로세스 내부 스케줄러
-- PostgreSQL, Redis 또는 별도 데이터베이스
+- 운영 원본용 PostgreSQL 또는 Redis
 - Docker와 컨테이너 이미지
 - 비동기 코드
 - GPU와 CUDA
@@ -91,6 +98,8 @@ MVP에서는 다음을 사용하지 않는다.
 ├── Socket Mode interactive 요청 ACK
 ├── 리더보드 집계와 5분 캐시
 ├── 사내망 HTML과 health check 제공
+├── 격리된 SQLite 후보 관리 알파와 읽기 전용 변경 기록
+├── 알파 DB 일일 백업과 보존 개수 제한
 └── 실행 흐름과 오류 분류
 ```
 
@@ -157,3 +166,6 @@ bapratustra-slack.service
 - 안전한 읽기와 좋아요 동기화만 애플리케이션에서 최대 세 번 시도하며 Slack 추천 게시와 후속 기록은 재시도하지 않는다.
 - 상시 service는 `python -m bapratustra --run-slack-service`를 실행하고 비정상 종료 때만 5초 후 재시작한다.
 - 실제 점심 채널과 운영 채널에서 한 차례 전체 흐름을 검증하고 서버 경로와 권한을 확정한 뒤 timer를 활성화한다.
+- 후보 관리 알파는 `bapratustra-alpha.service`가 Uvicorn 단일 worker를 상시 실행하고 비정상 종료 때 5초 후 재시작한다.
+- `bapratustra-alpha-backup.timer`는 매일 03:30 KST에 백업 작업을 실행한다. 서버가 당시 꺼져 있었다면 `Persistent=true`로 다음 기동 때 놓친 백업을 한 번 실행한다.
+- 알파 백업 명령은 새 백업의 integrity check가 성공한 뒤 이름 기준 최신 30개만 남긴다.

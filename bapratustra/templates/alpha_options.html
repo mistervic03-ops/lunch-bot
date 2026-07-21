@@ -1,0 +1,16 @@
+{% extends "alpha_base.html" %}
+{% block title %}점심 후보 둘러보기{% endblock %}
+{% block content %}
+<section class="page-heading"><h1>점심 후보 둘러보기</h1><p>쉬는 후보도 기록에서 지우지 않고 남겨둡니다.</p></section>
+<form class="search" method="get"><input name="q" value="{{ query }}" placeholder="식당이나 메뉴 찾기"><button type="submit">찾기</button></form>
+<div class="candidate-list">
+{% for candidate in candidates %}
+  <article class="candidate {% if not candidate.active %}inactive{% endif %}">
+    <div><p class="restaurant">{{ candidate.restaurant }}</p><h2>{{ candidate.menu }}</h2>
+      <p class="meta">{% if candidate.price is not none %}{{ '{:,}'.format(candidate.price) }}원{% endif %}{% if candidate.recommended_by %} · {{ candidate.recommended_by }} 추천{% endif %}</p>
+    </div>
+    <div class="row-actions"><span class="status">{{ '추천 중' if candidate.active else '쉬는 중' }}</span><a href="/options/{{ candidate.id }}/edit">살펴보기</a></div>
+  </article>
+{% else %}<p class="empty">조건에 맞는 후보가 없습니다.</p>{% endfor %}
+</div>
+{% endblock %}

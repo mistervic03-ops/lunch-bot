@@ -1,0 +1,29 @@
+{% extends "alpha_base.html" %}
+{% block title %}{{ candidate.restaurant }} 수정{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">후보 살펴보기</p><h1>{{ candidate.restaurant }} · {{ candidate.menu }}</h1></section>
+{% if created %}<aside class="notice success">점심 후보를 보탰습니다.</aside>{% endif %}
+{% if saved %}<aside class="notice success">수정한 내용을 저장했습니다.</aside>{% endif %}
+{% if duplicate %}<aside class="notice warning">같은 후보가 이미 있습니다. <a href="/options/{{ duplicate.id }}/edit">기존 후보 확인하기</a></aside>{% endif %}
+<form class="candidate-form" method="post" action="/options/{{ candidate.id }}/edit">
+  <input type="hidden" name="actor" data-actor>
+  <label>식당 <input name="restaurant" value="{{ values.get('restaurant', '') }}" required></label>
+  {% if errors.get('restaurant') %}<p class="field-error">{{ errors.restaurant }}</p>{% endif %}
+  <label>추천 메뉴 <input name="menu" value="{{ values.get('menu', '') }}" required></label>
+  {% if errors.get('menu') %}<p class="field-error">{{ errors.menu }}</p>{% endif %}
+  <div class="optional-fields open">
+    <label>가격 <input name="price" inputmode="numeric" value="{{ values.get('price', '') }}"></label>
+    {% if errors.get('price') %}<p class="field-error">{{ errors.price }}</p>{% endif %}
+    <label>지도 링크 <input name="map_url" type="url" value="{{ values.get('map_url', '') }}"></label>
+    {% if errors.get('map_url') %}<p class="field-error">{{ errors.map_url }}</p>{% endif %}
+    <label>추천인 <input name="recommended_by" value="{{ values.get('recommended_by', '') }}"></label>
+    <label>한줄 메모 <input name="note" value="{{ values.get('note', '') }}"></label>
+  </div>
+  <button class="primary" type="submit">수정 저장하기</button>
+</form>
+<form class="secondary-action" method="post" action="/options/{{ candidate.id }}/active">
+  <input type="hidden" name="active" value="{{ '0' if candidate.active else '1' }}">
+  <input type="hidden" name="actor" data-actor>
+  <button type="submit">{{ '잠시 추천에서 빼기' if candidate.active else '다시 추천에 넣기' }}</button>
+</form>
+{% endblock %}

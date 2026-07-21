@@ -1,0 +1,36 @@
+{% extends "alpha_base.html" %}
+{% block content %}
+<section class="intro">
+  <p class="eyebrow">점심의 새 가능성</p>
+  <h1>함께 먹고 싶은 한 끼를 보태주세요.</h1>
+  <p>식당과 메뉴만 적으면 끝입니다. 나머지는 알고 있을 때만 알려주세요.</p>
+</section>
+
+{% if duplicate %}
+<aside class="notice warning">
+  <strong>이미 같은 후보가 있습니다.</strong>
+  <span>{{ duplicate.restaurant }} · {{ duplicate.menu }}</span>
+  <a href="/options/{{ duplicate.id }}/edit">기존 후보 확인하기</a>
+</aside>
+{% endif %}
+
+<form class="candidate-form" method="post" action="/suggest" data-remember-name>
+  <label>식당 <input name="restaurant" value="{{ values.get('restaurant', '') }}" required autofocus></label>
+  {% if errors.get('restaurant') %}<p class="field-error">{{ errors.restaurant }}</p>{% endif %}
+  <label>추천 메뉴 <input name="menu" value="{{ values.get('menu', '') }}" required></label>
+  {% if errors.get('menu') %}<p class="field-error">{{ errors.menu }}</p>{% endif %}
+
+  <details>
+    <summary>가격, 지도 링크 같은 정보도 보태기</summary>
+    <div class="optional-fields">
+      <label>가격 <input name="price" inputmode="numeric" value="{{ values.get('price', '') }}" placeholder="예: 12000"></label>
+      {% if errors.get('price') %}<p class="field-error">{{ errors.price }}</p>{% endif %}
+      <label>지도 링크 <input name="map_url" type="url" value="{{ values.get('map_url', '') }}" placeholder="https://..."></label>
+      {% if errors.get('map_url') %}<p class="field-error">{{ errors.map_url }}</p>{% endif %}
+      <label>추천인 <input name="recommended_by" value="{{ values.get('recommended_by', '') }}" autocomplete="name"></label>
+      <label>한줄 메모 <input name="note" value="{{ values.get('note', '') }}" placeholder="예: 4명 이상 가기 좋아요"></label>
+    </div>
+  </details>
+  <button class="primary" type="submit">이 후보 보태기</button>
+</form>
+{% endblock %}

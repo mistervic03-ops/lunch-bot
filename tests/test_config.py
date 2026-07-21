@@ -6,6 +6,7 @@ import pytest
 
 from bapratustra.config import (
     ConfigurationError,
+    load_alpha_settings,
     load_google_sheets_settings,
     load_ops_alert_settings,
     load_slack_service_settings,
@@ -163,3 +164,18 @@ def test_load_slack_service_settings_requires_only_slack_tokens(
 
     assert settings.slack_app_token == "xapp-test"
     assert settings.slack_bot_token == "xoxb-test"
+
+
+def test_load_alpha_settings_requires_only_local_paths(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("BAPRATUSTRA_ALPHA_DB", str(tmp_path / "data" / "alpha.db"))
+    monkeypatch.setenv("BAPRATUSTRA_ALPHA_BACKUP_DIR", str(tmp_path / "backups"))
+    for name in REQUIRED_ENV:
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.delenv("GOOGLE_SERVICE_ACCOUNT_FILE", raising=False)
+
+    settings = load_alpha_settings(dotenv_path=tmp_path / "absent.env")
+
+    assert settings.database_file == tmp_path / "data" / "alpha.db"
+    assert settings.backup_directory == tmp_path / "backups"

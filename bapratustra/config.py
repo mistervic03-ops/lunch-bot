@@ -55,6 +55,12 @@ class SlackServiceSettings:
     slack_bot_token: str
 
 
+@dataclass(frozen=True)
+class AlphaSettings:
+    database_file: Path
+    backup_directory: Path
+
+
 def _required(name: str) -> str:
     value = os.getenv(name, "").strip()
     if not value:
@@ -101,6 +107,19 @@ def load_slack_service_settings(
     return SlackServiceSettings(
         slack_app_token=_required("SLACK_APP_TOKEN"),
         slack_bot_token=_required("SLACK_BOT_TOKEN"),
+    )
+
+
+def load_alpha_settings(
+    *, dotenv_path: str | Path | None = None
+) -> AlphaSettings:
+    """Load only settings for the isolated candidate-management alpha."""
+    load_dotenv(dotenv_path=dotenv_path, override=False)
+    return AlphaSettings(
+        database_file=Path(_required("BAPRATUSTRA_ALPHA_DB")).expanduser(),
+        backup_directory=Path(
+            _required("BAPRATUSTRA_ALPHA_BACKUP_DIR")
+        ).expanduser(),
     )
 
 

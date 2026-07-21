@@ -62,6 +62,7 @@ AGENTS.md                         # 최상위 원칙과 문서 탐색 지도
     ├── data/
     │   └── google-sheets.md      # 공동 편집 Google Sheet의 스키마와 관리 규칙
     ├── features/
+    │   ├── candidate-management-alpha.md # 별도 DB와 후보 추가·편집 도구의 알파 범위와 전환 기준
     │   ├── daily-recommendation.md # 정기 추천의 메시지와 예외 처리 정책
     │   ├── leaderboard.md        # 사내 리더보드의 지표, 화면과 캐시·접근 정책
     │   └── reactions.md          # 후보별 번호 반응과 통계 데이터 수집 규칙
@@ -82,6 +83,7 @@ AGENTS.md                         # 최상위 원칙과 문서 탐색 지도
 - 기술 스택, 프로세스 형태, 스케줄러와 외부 연동 경계를 확인할 때: `docs/architecture/runtime.md`
 - Google Sheet의 열, 값 형식, 공동 편집 규칙을 확인할 때: `docs/data/google-sheets.md`
 - 정기 추천 시각, 메시지 구성, 후보 부족과 운영 오류의 처리 방식을 확인할 때: `docs/features/daily-recommendation.md`
+- 후보 관리 알파의 격리 범위, SQLite 구조, 백업·복원과 시트 복귀 기준을 확인할 때: `docs/features/candidate-management-alpha.md`
 - 사내 리더보드의 표시 지표, 정렬, 갱신 주기와 접근 범위를 확인할 때: `docs/features/leaderboard.md`
 - 후보별 좋아요, Slack 번호 반응, 반응 집계와 통계 의미를 확인할 때: `docs/features/reactions.md`
 - Slack 앱을 생성·설치하거나 권한, 채널, 토큰 또는 담당자 인계를 확인할 때: `docs/integrations/slack.md`

@@ -1,0 +1,10 @@
+[Unit]
+Description=Back up the Bapratustra alpha database daily
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 Asia/Seoul
+Persistent=true
+Unit=bapratustra-alpha-backup.service
+
+[Install]
+WantedBy=timers.target

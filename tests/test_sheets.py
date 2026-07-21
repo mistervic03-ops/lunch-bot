@@ -10,11 +10,13 @@ from bapratustra.recommendation import LunchOption
 from bapratustra.sheets import (
     LUNCH_OPTIONS_HEADERS,
     RECOMMENDATION_LOG_HEADERS,
+    LunchOptionRow,
     RecommendationLogEntry,
     RowIssue,
     SheetSchemaError,
     append_recommendation_log,
     parse_lunch_options,
+    parse_lunch_option_rows,
     parse_recommendation_log,
     read_lunch_options,
     read_recommendation_log,
@@ -72,6 +74,39 @@ def test_parse_lunch_options_returns_valid_active_rows_and_issues() -> None:
         RowIssue(5, "price must be a non-negative integer"),
         RowIssue(6, "active must be TRUE or FALSE"),
     )
+
+
+def test_parse_lunch_option_rows_preserves_inactive_candidates() -> None:
+    result = parse_lunch_option_rows(
+        [
+            list(LUNCH_OPTIONS_HEADERS),
+            [True, "활성 식당", "메뉴"],
+            [False, "쉬는 식당", "다른 메뉴"],
+        ]
+    )
+
+    assert result.rows == (
+        LunchOptionRow(True, LunchOption("활성 식당", "메뉴")),
+        LunchOptionRow(False, LunchOption("쉬는 식당", "다른 메뉴")),
+    )
+
+
+def test_parse_lunch_option_rows_ignores_preformatted_empty_checkbox_rows() -> None:
+    result = parse_lunch_option_rows(
+        [list(LUNCH_OPTIONS_HEADERS), [False, "", "", "", "", "", ""]]
+    )
+
+    assert result.rows == ()
+    assert result.issues == ()
+
+
+def test_live_parser_still_ignores_malformed_inactive_rows() -> None:
+    result = parse_lunch_options(
+        [list(LUNCH_OPTIONS_HEADERS), [False, "쉬는 식당", "메뉴", -1]]
+    )
+
+    assert result.options == ()
+    assert result.issues == ()
 
 
 @pytest.mark.parametrize(

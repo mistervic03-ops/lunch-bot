@@ -2,7 +2,7 @@
 
 매일 평일 오전 11시(KST), 사내 Slack 채널에 세 곳의 점심 후보를 알려주는 봇이다. 과장되게 진지한 철학자가 점심의 세 갈래 길을 선언하는 캐릭터를 사용하며, 후보는 직원들이 공동 편집하는 Google Sheet에서 가져온다.
 
-현재 저장소에는 공정 순환 추천, Sheet와 전당 링크 버튼이 있는 Slack 게시, 번호 반응, Google Sheets 추천 로그와 좋아요 동기화, 채널 온보딩, 최소 Socket Mode ACK 서비스와 사내 리더보드 웹페이지가 구현되어 있다.
+현재 저장소에는 공정 순환 추천, Sheet와 전당 링크 버튼이 있는 Slack 게시, 번호 반응, Google Sheets 추천 로그와 좋아요 동기화, 채널 온보딩, 최소 Socket Mode ACK 서비스와 사내 리더보드 웹페이지가 구현되어 있다. Google Sheet를 대체할 가치가 있는지 확인하기 위한 별도 SQLite 후보 관리 알파도 있지만, 현재 봇과 전당은 계속 Sheet만 사용한다.
 
 ## 개발 환경
 
@@ -64,6 +64,15 @@ python -m uvicorn bapratustra.web:create_app --factory --host 127.0.0.1 --port 8
 ```
 
 페이지는 실제 Sheet를 읽어 `http://127.0.0.1:8030/`에 표시하고 5분간 캐시한다. 운영 접근 범위와 지표 정의는 `docs/features/leaderboard.md`를 따른다.
+
+후보 관리 알파는 기존 운영과 분리된 DB와 포트에서 실행한다. 최초 실행 전에 `.env`의 알파 경로를 정하고 현재 Sheet를 읽기 전용으로 한 번 가져온다.
+
+```bash
+python -m bapratustra --import-sheet-to-alpha
+python -m uvicorn bapratustra.alpha_web:create_app --factory --host 127.0.0.1 --port 8031
+```
+
+운영에서는 별도 systemd 서비스가 알파 웹을 자동 재시작하고, 매일 03:30 KST에 검증된 백업을 만든 뒤 최근 30개만 보존한다. 화면과 백업, 평가 및 Sheet 복귀 기준은 `docs/features/candidate-management-alpha.md`를 따른다.
 
 ## 테스트
 

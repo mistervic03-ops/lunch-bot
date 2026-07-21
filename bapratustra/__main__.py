@@ -7,13 +7,16 @@ from collections.abc import Sequence
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
+from bapratustra.alpha_import import import_sheet_snapshot
 from bapratustra.config import (
     ConfigurationError,
+    load_alpha_settings,
     load_google_sheets_settings,
     load_ops_alert_settings,
     load_slack_service_settings,
     load_settings,
 )
+from bapratustra.database import CandidateDatabase
 from bapratustra.interactions import serve_socket_mode
 from bapratustra.job import run_daily_job, to_recommendation_history
 from bapratustra.messaging import (
@@ -180,6 +183,30 @@ def notify_systemd_failure(unit_name: str) -> int:
     return 0
 
 
+def import_alpha_snapshot() -> int:
+    alpha = load_alpha_settings()
+    google = load_google_sheets_settings()
+    candidate_count, log_count = import_sheet_snapshot(alpha, google)
+    print(
+        "알파 DB 가져오기 완료: "
+        f"후보 {candidate_count}개, 추천 기록 {log_count}개"
+    )
+    return 0
+
+
+def backup_alpha_database() -> int:
+    settings = load_alpha_settings()
+    if not settings.database_file.is_file():
+        raise ConfigurationError(
+            f"BAPRATUSTRA_ALPHA_DB does not exist: {settings.database_file}"
+        )
+    database = CandidateDatabase(settings.database_file)
+    backup = database.backup(settings.backup_directory)
+    removed = database.prune_backups(settings.backup_directory, keep=30)
+    print(f"알파 DB 백업 완료: {backup}; 오래된 백업 {len(removed)}개 정리")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Validate all settings or preview the real Sheet without mutating it."""
     parser = argparse.ArgumentParser(description="밥라투스트라 운영 명령")
@@ -212,6 +239,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Slack 버튼 요청을 처리하는 Socket Mode 서비스를 실행합니다.",
     )
     commands.add_argument(
+        "--import-sheet-to-alpha",
+        action="store_true",
+        help="현재 Sheet를 비어 있는 알파 DB로 읽기 전용 가져오기합니다.",
+    )
+    commands.add_argument(
+        "--backup-alpha",
+        action="store_true",
+        help="알파 DB의 검증된 SQLite 백업을 만듭니다.",
+    )
+    commands.add_argument(
         "--notify-systemd-failure",
         metavar="UNIT",
         help="systemd 실패 unit을 운영 채널에 알립니다.",
@@ -229,6 +266,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return post_onboarding()
         if args.run_slack_service:
             return run_slack_service()
+        if args.import_sheet_to_alpha:
+            return import_alpha_snapshot()
+        if args.backup_alpha:
+            return backup_alpha_database()
         if args.notify_systemd_failure:
             return notify_systemd_failure(args.notify_systemd_failure)
         load_settings()

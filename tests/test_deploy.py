@@ -16,6 +16,15 @@ def test_systemd_units_use_bapratustra_identifiers() -> None:
     leaderboard_service = (
         ROOT / "deploy" / "bapratustra-leaderboard.service"
     ).read_text(encoding="utf-8")
+    alpha_service = (
+        ROOT / "deploy" / "bapratustra-alpha.service"
+    ).read_text(encoding="utf-8")
+    alpha_backup_service = (
+        ROOT / "deploy" / "bapratustra-alpha-backup.service"
+    ).read_text(encoding="utf-8")
+    alpha_backup_timer = (
+        ROOT / "deploy" / "bapratustra-alpha-backup.timer"
+    ).read_text(encoding="utf-8")
 
     assert "User=bapratustra" in service
     assert "Group=bapratustra" in service
@@ -36,6 +45,14 @@ def test_systemd_units_use_bapratustra_identifiers() -> None:
     assert "Environment=PYTHON_DOTENV_DISABLED=1" in leaderboard_service
     assert "UnsetEnvironment=SLACK_BOT_TOKEN SLACK_APP_TOKEN" in leaderboard_service
     assert "BAPRATUSTRA_LEADERBOARD_URL" in leaderboard_service
+    assert "uvicorn bapratustra.alpha_web:create_app --factory" in alpha_service
+    assert "--host 0.0.0.0 --port 8031 --workers 1" in alpha_service
+    assert "Restart=on-failure" in alpha_service
+    assert "python -m bapratustra --backup-alpha" in alpha_backup_service
+    assert "OnFailure=bapratustra-failure@%n.service" in alpha_backup_service
+    assert "OnCalendar=*-*-* 03:30:00 Asia/Seoul" in alpha_backup_timer
+    assert "Persistent=true" in alpha_backup_timer
+    assert "Unit=bapratustra-alpha-backup.service" in alpha_backup_timer
     assert not (ROOT / "deploy" / "babgwe.service").exists()
     assert not (ROOT / "deploy" / "babgwe.timer").exists()
 
