@@ -14,7 +14,7 @@ from bapratustra.sheets import (
     RecommendationLogEntry,
     RowIssue,
     SheetSchemaError,
-    append_lunch_option,
+    add_lunch_option,
     append_recommendation_log,
     parse_lunch_options,
     parse_lunch_option_rows,
@@ -160,10 +160,18 @@ def test_read_lunch_options_uses_unformatted_row_values() -> None:
     )
 
 
-def test_append_lunch_option_adds_one_active_raw_row() -> None:
+def test_add_lunch_option_writes_first_preformatted_empty_row() -> None:
     service = MagicMock()
-    append_request = service.spreadsheets.return_value.values.return_value.append
-    append_request.return_value.execute.return_value = {"updates": {"updatedRows": 1}}
+    values_api = service.spreadsheets.return_value.values.return_value
+    values_api.get.return_value.execute.return_value = {
+        "values": [
+            list(LUNCH_OPTIONS_HEADERS),
+            [True, "기존 식당", "기존 메뉴"],
+            [False],
+            [False],
+        ]
+    }
+    values_api.update.return_value.execute.return_value = {"updatedRows": 1}
     option = LunchOption(
         "식당",
         "메뉴",
@@ -173,13 +181,18 @@ def test_append_lunch_option_adds_one_active_raw_row() -> None:
         note="점심에 한산함",
     )
 
-    append_lunch_option(service, "spreadsheet-id", option)
+    add_lunch_option(service, "spreadsheet-id", option)
 
-    append_request.assert_called_once_with(
+    values_api.get.assert_called_once_with(
         spreadsheetId="spreadsheet-id",
         range="lunch_options!A:G",
+        majorDimension="ROWS",
+        valueRenderOption="UNFORMATTED_VALUE",
+    )
+    values_api.update.assert_called_once_with(
+        spreadsheetId="spreadsheet-id",
+        range="lunch_options!A3:G3",
         valueInputOption="RAW",
-        insertDataOption="INSERT_ROWS",
         body={
             "values": [
                 [
@@ -196,13 +209,46 @@ def test_append_lunch_option_adds_one_active_raw_row() -> None:
     )
 
 
-def test_append_lunch_option_rejects_partial_api_success() -> None:
+def test_add_lunch_option_appends_after_last_row_when_no_blank_row_exists() -> None:
     service = MagicMock()
-    append_request = service.spreadsheets.return_value.values.return_value.append
-    append_request.return_value.execute.return_value = {"updates": {"updatedRows": 0}}
+    values_api = service.spreadsheets.return_value.values.return_value
+    values_api.get.return_value.execute.return_value = {
+        "values": [list(LUNCH_OPTIONS_HEADERS), [True, "식당", "메뉴"]]
+    }
+    values_api.update.return_value.execute.return_value = {"updatedRows": 1}
+
+    add_lunch_option(service, "spreadsheet-id", LunchOption("새 식당", "새 메뉴"))
+
+    assert values_api.update.call_args.kwargs["range"] == "lunch_options!A3:G3"
+
+
+def test_add_lunch_option_does_not_overwrite_partial_candidate_row() -> None:
+    service = MagicMock()
+    values_api = service.spreadsheets.return_value.values.return_value
+    values_api.get.return_value.execute.return_value = {
+        "values": [
+            list(LUNCH_OPTIONS_HEADERS),
+            [False, "", "작성 중인 메뉴"],
+            [False],
+        ]
+    }
+    values_api.update.return_value.execute.return_value = {"updatedRows": 1}
+
+    add_lunch_option(service, "spreadsheet-id", LunchOption("새 식당", "새 메뉴"))
+
+    assert values_api.update.call_args.kwargs["range"] == "lunch_options!A3:G3"
+
+
+def test_add_lunch_option_rejects_partial_api_success() -> None:
+    service = MagicMock()
+    values_api = service.spreadsheets.return_value.values.return_value
+    values_api.get.return_value.execute.return_value = {
+        "values": [list(LUNCH_OPTIONS_HEADERS), [False]]
+    }
+    values_api.update.return_value.execute.return_value = {"updatedRows": 0}
 
     with pytest.raises(RuntimeError, match="exactly one row"):
-        append_lunch_option(service, "spreadsheet-id", LunchOption("식당", "메뉴"))
+        add_lunch_option(service, "spreadsheet-id", LunchOption("식당", "메뉴"))
 
 
 def test_parse_recommendation_log_returns_typed_entries() -> None:

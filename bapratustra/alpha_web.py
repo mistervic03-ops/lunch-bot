@@ -17,7 +17,7 @@ from bapratustra.config import GoogleSheetsSettings, load_google_sheets_settings
 from bapratustra.recommendation import LunchOption, normalize_name
 from bapratustra.sheets import (
     LunchOptionRow,
-    append_lunch_option,
+    add_lunch_option,
     build_writable_sheets_service,
     read_lunch_option_rows,
 )
@@ -166,7 +166,7 @@ def create_app(
                 return render_form(
                     request, values=values, duplicate=duplicate, status_code=409
                 )
-            append_lunch_option(service, loaded.google_spreadsheet_id, option)
+            add_lunch_option(service, loaded.google_spreadsheet_id, option)
         except Exception as exc:
             LOGGER.error("candidate Sheet write failed: %s", type(exc).__name__)
             return render_form(

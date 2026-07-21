@@ -26,8 +26,8 @@ def _client(rows: list[list[object]]) -> tuple[TestClient, MagicMock]:
     service.spreadsheets.return_value.values.return_value.get.return_value.execute.return_value = {
         "values": [list(LUNCH_OPTIONS_HEADERS), *rows]
     }
-    service.spreadsheets.return_value.values.return_value.append.return_value.execute.return_value = {
-        "updates": {"updatedRows": 1}
+    service.spreadsheets.return_value.values.return_value.update.return_value.execute.return_value = {
+        "updatedRows": 1
     }
     return (
         TestClient(create_app(settings=_settings(), service_factory=lambda: service)),
@@ -81,7 +81,7 @@ def test_contribution_page_is_simple_and_links_to_sheet() -> None:
     assert client.get("/healthz").json() == {"status": "ok"}
 
 
-def test_create_candidate_appends_to_sheet_and_redirects() -> None:
+def test_create_candidate_writes_to_sheet_and_redirects() -> None:
     client, service = _client([])
 
     response = client.post(
@@ -93,7 +93,7 @@ def test_create_candidate_appends_to_sheet_and_redirects() -> None:
 
     assert response.status_code == 303
     assert response.headers["location"] == "/suggest?created=1"
-    service.spreadsheets.return_value.values.return_value.append.assert_called_once()
+    service.spreadsheets.return_value.values.return_value.update.assert_called_once()
 
 
 def test_validation_and_inactive_duplicate_do_not_write() -> None:
@@ -110,7 +110,7 @@ def test_validation_and_inactive_duplicate_do_not_write() -> None:
     assert "식당 이름을 입력해 주세요" in invalid.text
     assert duplicate.status_code == 409
     assert "추천에서 제외된 상태입니다" in duplicate.text
-    service.spreadsheets.return_value.values.return_value.append.assert_not_called()
+    service.spreadsheets.return_value.values.return_value.update.assert_not_called()
 
 
 def test_options_page_reads_active_and_inactive_sheet_rows() -> None:

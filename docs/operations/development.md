@@ -4,7 +4,7 @@
 
 현재 저장소는 실제 일일 작업까지 연결된 단계다.
 
-- 구현됨: 환경변수 검증, 순수 추천 계산, Slack 메시지와 Sheet·전당 링크 버튼 생성·게시, 채널 온보딩 게시 명령, 링크 버튼 Socket Mode ACK, 번호 반응 추가·조회, 최근 다섯 메시지 좋아요 동기화, Google Sheets 후보와 추천 로그 읽기·검증 및 일괄 쓰기, 후보 웹의 Sheet 검색·중복 확인·한 행 추가, 안전한 읽기·동기화의 제한된 재시도, 날짜·채널 중복 판정, 운영 채널 알림, 실제 일일 작업, 읽기 전용 드라이런, Slack 연결 테스트 명령, systemd 실패 알림 명령, 사내 리더보드 집계·캐시·HTML과 health check, Slack App Manifest, systemd 템플릿
+- 구현됨: 환경변수 검증, 순수 추천 계산, Slack 메시지와 Sheet·전당 링크 버튼 생성·게시, 채널 온보딩 게시 명령, 링크 버튼 Socket Mode ACK, 번호 반응 추가·조회, 최근 다섯 메시지 좋아요 동기화, Google Sheets 후보와 추천 로그 읽기·검증 및 일괄 쓰기, 후보 웹의 Sheet 검색·중복 확인·첫 빈 후보 행 기록, 안전한 읽기·동기화의 제한된 재시도, 날짜·채널 중복 판정, 운영 채널 알림, 실제 일일 작업, 읽기 전용 드라이런, Slack 연결 테스트 명령, systemd 실패 알림 명령, 사내 리더보드 집계·캐시·HTML과 health check, Slack App Manifest, systemd 템플릿
 - 미구현: 월간 통계 게시, 번호 반응 추가 실패의 자동 복구
 - `python -m bapratustra`는 설정만 검증하며 외부 API를 호출하지 않는다.
 - `python -m bapratustra --run-daily`는 실제 Slack과 Google Sheet를 변경한다.
@@ -77,7 +77,7 @@ python -m uvicorn bapratustra.alpha_web:create_app --factory --host 127.0.0.1 --
 
 리더보드 로컬 명령은 실제 Sheet를 읽고 `http://127.0.0.1:8030/`에 페이지를 제공한다. `http://127.0.0.1:8030/healthz`는 Sheet를 호출하지 않고 프로세스 상태만 확인한다. 운영에서는 `deploy/bapratustra-leaderboard.service`가 `0.0.0.0:8030`의 Uvicorn 단일 worker를 실행한다.
 
-후보 간편 등록 웹은 기존 Google Spreadsheet ID와 Service Account 파일만 사용한다. 검색은 활성·비활성 후보를 모두 읽고, 등록은 중복이 없을 때 `lunch_options`에 활성 행 하나를 추가한다. 기존 행의 수정·삭제·비활성화는 웹에서 수행하지 않고 Sheet로 연결한다. 별도 DB, migration, 동기화와 백업 작업은 없다.
+후보 간편 등록 웹은 기존 Google Spreadsheet ID와 Service Account 파일만 사용한다. 검색은 활성·비활성 후보를 모두 읽고, 등록은 중복이 없을 때 식당과 메뉴가 모두 비어 있는 첫 행에 활성 후보를 기록한다. 이미 입력된 후보 행의 수정·삭제·비활성화는 웹에서 수행하지 않고 Sheet로 연결한다. 별도 DB, migration, 동기화와 백업 작업은 없다.
 
 드라이런에서 유효 후보가 없으면 Google 연결과 헤더 검증이 성공했더라도 종료 코드 `1`을 반환한다. 2026-07-20 최초 연동에서는 실제 Sheet 연결에 성공했고 후보가 비어 있어 `0 active option(s)`를 확인했다.
 

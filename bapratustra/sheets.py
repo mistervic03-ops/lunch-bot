@@ -248,18 +248,43 @@ def read_lunch_option_rows(
     return parse_lunch_option_rows(response.get("values", []))
 
 
-def append_lunch_option(
+def add_lunch_option(
     service: Any, spreadsheet_id: str, option: LunchOption
 ) -> None:
-    """Append one employee-submitted option without changing existing rows."""
+    """Write one option to the first row whose restaurant and menu are blank."""
+    values_api = service.spreadsheets().values()
     response = (
-        service.spreadsheets()
-        .values()
-        .append(
+        values_api.get(
             spreadsheetId=spreadsheet_id,
             range=LUNCH_OPTIONS_RANGE,
+            majorDimension="ROWS",
+            valueRenderOption="UNFORMATTED_VALUE",
+        )
+        .execute()
+    )
+    rows = response.get("values", [])
+    if not rows:
+        raise SheetSchemaError("lunch_options is empty and has no header row")
+    header = tuple(_text(value) for value in rows[0])
+    if header != LUNCH_OPTIONS_HEADERS:
+        raise SheetSchemaError(
+            "lunch_options header must exactly match: "
+            + ", ".join(LUNCH_OPTIONS_HEADERS)
+        )
+
+    row_number = len(rows) + 1
+    for candidate_row_number, raw_row in enumerate(rows[1:], start=2):
+        restaurant = _text(raw_row[1]) if len(raw_row) > 1 else ""
+        menu = _text(raw_row[2]) if len(raw_row) > 2 else ""
+        if not restaurant and not menu:
+            row_number = candidate_row_number
+            break
+
+    response = (
+        values_api.update(
+            spreadsheetId=spreadsheet_id,
+            range=f"lunch_options!A{row_number}:G{row_number}",
             valueInputOption="RAW",
-            insertDataOption="INSERT_ROWS",
             body={
                 "values": [
                     [
@@ -276,8 +301,8 @@ def append_lunch_option(
         )
         .execute()
     )
-    if response.get("updates", {}).get("updatedRows") != 1:
-        raise RuntimeError("lunch_options append did not add exactly one row")
+    if response.get("updatedRows") != 1:
+        raise RuntimeError("lunch_options write did not update exactly one row")
 
 
 def _log_error(row_number: int, reason: str) -> SheetSchemaError:
