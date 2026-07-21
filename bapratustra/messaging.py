@@ -11,7 +11,7 @@ from bapratustra.recommendation import LunchOption
 
 NUMBER_REACTIONS = ("one", "two", "three")
 KST = ZoneInfo("Asia/Seoul")
-OPEN_LUNCH_SHEET_ACTION_ID = "open_lunch_sheet"
+OPEN_CANDIDATE_WEB_ACTION_ID = "open_candidate_web"
 OPEN_LEADERBOARD_ACTION_ID = "open_leaderboard"
 
 
@@ -55,14 +55,14 @@ def build_daily_message(recommendations: Sequence[LunchOption]) -> str:
 
     lines.append("")
     if len(recommendations) < 3:
-        lines.append("새로운 후보는 시트에 보태주세요.")
+        lines.append("새로운 후보는 아래 버튼으로 보태주세요.")
     else:
         lines.append("마음이 가는 번호에 반응해주세요.")
     return "\n".join(lines)
 
 
 def _message_blocks(
-    text: str, sheet_url: str, leaderboard_url: str
+    text: str, candidate_url: str, leaderboard_url: str
 ) -> list[dict[str, Any]]:
     return [
         {
@@ -79,8 +79,8 @@ def _message_blocks(
                         "text": "점심 후보 보태기",
                         "emoji": True,
                     },
-                    "url": sheet_url,
-                    "action_id": OPEN_LUNCH_SHEET_ACTION_ID,
+                    "url": candidate_url,
+                    "action_id": OPEN_CANDIDATE_WEB_ACTION_ID,
                 },
                 {
                     "type": "button",
@@ -114,7 +114,7 @@ def post_daily_message(
     channel_id: str,
     recommendations: Sequence[LunchOption],
     *,
-    sheet_url: str,
+    candidate_url: str,
     leaderboard_url: str,
     connection_test: bool = False,
 ) -> SlackPost:
@@ -125,7 +125,7 @@ def post_daily_message(
     response = client.chat_postMessage(
         channel=channel_id,
         text=text,
-        blocks=_message_blocks(text, sheet_url, leaderboard_url),
+        blocks=_message_blocks(text, candidate_url, leaderboard_url),
         unfurl_links=False,
         unfurl_media=False,
     )
@@ -140,7 +140,7 @@ def post_channel_onboarding(
     client: Any,
     channel_id: str,
     *,
-    sheet_url: str,
+    candidate_url: str,
     leaderboard_url: str,
 ) -> SlackPost:
     """Post the one-time channel guide; pinning remains a manual admin action."""
@@ -148,7 +148,7 @@ def post_channel_onboarding(
     response = client.chat_postMessage(
         channel=channel_id,
         text=text,
-        blocks=_message_blocks(text, sheet_url, leaderboard_url),
+        blocks=_message_blocks(text, candidate_url, leaderboard_url),
         unfurl_links=False,
         unfurl_media=False,
     )

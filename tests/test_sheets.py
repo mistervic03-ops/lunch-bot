@@ -14,6 +14,7 @@ from bapratustra.sheets import (
     RecommendationLogEntry,
     RowIssue,
     SheetSchemaError,
+    append_lunch_option,
     append_recommendation_log,
     parse_lunch_options,
     parse_lunch_option_rows,
@@ -157,6 +158,51 @@ def test_read_lunch_options_uses_unformatted_row_values() -> None:
         majorDimension="ROWS",
         valueRenderOption="UNFORMATTED_VALUE",
     )
+
+
+def test_append_lunch_option_adds_one_active_raw_row() -> None:
+    service = MagicMock()
+    append_request = service.spreadsheets.return_value.values.return_value.append
+    append_request.return_value.execute.return_value = {"updates": {"updatedRows": 1}}
+    option = LunchOption(
+        "식당",
+        "메뉴",
+        price=12000,
+        map_url="https://map.example/place",
+        recommended_by="민지",
+        note="점심에 한산함",
+    )
+
+    append_lunch_option(service, "spreadsheet-id", option)
+
+    append_request.assert_called_once_with(
+        spreadsheetId="spreadsheet-id",
+        range="lunch_options!A:G",
+        valueInputOption="RAW",
+        insertDataOption="INSERT_ROWS",
+        body={
+            "values": [
+                [
+                    True,
+                    "식당",
+                    "메뉴",
+                    12000,
+                    "https://map.example/place",
+                    "민지",
+                    "점심에 한산함",
+                ]
+            ]
+        },
+    )
+
+
+def test_append_lunch_option_rejects_partial_api_success() -> None:
+    service = MagicMock()
+    append_request = service.spreadsheets.return_value.values.return_value.append
+    append_request.return_value.execute.return_value = {"updates": {"updatedRows": 0}}
+
+    with pytest.raises(RuntimeError, match="exactly one row"):
+        append_lunch_option(service, "spreadsheet-id", LunchOption("식당", "메뉴"))
 
 
 def test_parse_recommendation_log_returns_typed_entries() -> None:

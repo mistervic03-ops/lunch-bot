@@ -29,6 +29,7 @@ def _settings() -> Settings:
         lunch_channel_id="C_LUNCH",
         ops_channel_id="C_OPS",
         leaderboard_url="http://leaderboard.internal:8030/",
+        candidate_url="http://candidate.internal/suggest",
         google_spreadsheet_id="sheet-id",
         google_service_account_file=Path("credential.json"),
         timezone=KST,

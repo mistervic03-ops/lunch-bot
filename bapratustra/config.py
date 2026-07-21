@@ -18,6 +18,7 @@ class Settings:
     lunch_channel_id: str
     ops_channel_id: str
     leaderboard_url: str
+    candidate_url: str
     google_spreadsheet_id: str
     google_service_account_file: Path
     timezone: ZoneInfo
@@ -53,12 +54,6 @@ class OpsAlertSettings:
 class SlackServiceSettings:
     slack_app_token: str
     slack_bot_token: str
-
-
-@dataclass(frozen=True)
-class AlphaSettings:
-    database_file: Path
-    backup_directory: Path
 
 
 def _required(name: str) -> str:
@@ -110,19 +105,6 @@ def load_slack_service_settings(
     )
 
 
-def load_alpha_settings(
-    *, dotenv_path: str | Path | None = None
-) -> AlphaSettings:
-    """Load only settings for the isolated candidate-management alpha."""
-    load_dotenv(dotenv_path=dotenv_path, override=False)
-    return AlphaSettings(
-        database_file=Path(_required("BAPRATUSTRA_ALPHA_DB")).expanduser(),
-        backup_directory=Path(
-            _required("BAPRATUSTRA_ALPHA_BACKUP_DIR")
-        ).expanduser(),
-    )
-
-
 def load_settings(*, dotenv_path: str | Path | None = None) -> Settings:
     """Load settings from the environment, optionally preceded by a dotenv file."""
     load_dotenv(dotenv_path=dotenv_path, override=False)
@@ -141,6 +123,7 @@ def load_settings(*, dotenv_path: str | Path | None = None) -> Settings:
         lunch_channel_id=_required("LUNCH_CHANNEL_ID"),
         ops_channel_id=_required("OPS_CHANNEL_ID"),
         leaderboard_url=_required("BAPRATUSTRA_LEADERBOARD_URL"),
+        candidate_url=_required("BAPRATUSTRA_CANDIDATE_URL"),
         google_spreadsheet_id=google.google_spreadsheet_id,
         google_service_account_file=google.google_service_account_file,
         timezone=timezone,

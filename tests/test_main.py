@@ -6,8 +6,6 @@ from types import SimpleNamespace
 from slack_sdk.errors import SlackApiError
 
 from bapratustra import __main__
-from bapratustra.config import AlphaSettings
-from bapratustra.database import CandidateDatabase
 from bapratustra.job import DailyRunResult
 from bapratustra.messaging import SlackPost
 from bapratustra.recommendation import LunchOption
@@ -71,6 +69,7 @@ def test_slack_connection_test_posts_reactions_without_writing_log(
         slack_bot_token="xoxb-test",
         lunch_channel_id="C_TEST",
         lunch_sheet_url="https://docs.google.com/sheet",
+        candidate_url="http://candidate.internal/suggest",
         leaderboard_url="http://leaderboard.internal:8030/",
     )
     result = LunchOptionsResult(
@@ -180,33 +179,12 @@ def test_systemd_failure_notification_uses_only_ops_slack_settings(
     assert "bapratustra.service" in captured.out
 
 
-def test_alpha_backup_command_keeps_only_30_snapshots(
-    monkeypatch, tmp_path: Path, capsys
-) -> None:
-    database = CandidateDatabase(tmp_path / "alpha.sqlite3")
-    database.initialize()
-    backup_directory = tmp_path / "backups"
-    backup_directory.mkdir()
-    for index in range(30):
-        (backup_directory / f"bapratustra-202601{index:02d}.sqlite3").touch()
-    monkeypatch.setattr(
-        __main__,
-        "load_alpha_settings",
-        lambda: AlphaSettings(database.path, backup_directory),
-    )
-
-    exit_code = __main__.main(["--backup-alpha"])
-
-    assert exit_code == 0
-    assert len(list(backup_directory.glob("bapratustra-*.sqlite3"))) == 30
-    assert "오래된 백업 1개 정리" in capsys.readouterr().out
-
-
 def test_post_onboarding_uses_configured_channel_and_sheet(monkeypatch, capsys) -> None:
     settings = SimpleNamespace(
         slack_bot_token="xoxb-test",
         lunch_channel_id="C_LUNCH",
         lunch_sheet_url="https://docs.google.com/sheet",
+        candidate_url="http://candidate.internal/suggest",
         leaderboard_url="http://leaderboard.internal:8030/",
     )
     client = object()
@@ -234,7 +212,7 @@ def test_post_onboarding_uses_configured_channel_and_sheet(monkeypatch, capsys) 
             client,
             "C_LUNCH",
             {
-                "sheet_url": "https://docs.google.com/sheet",
+                "candidate_url": "http://candidate.internal/suggest",
                 "leaderboard_url": "http://leaderboard.internal:8030/",
             },
         )
@@ -250,6 +228,7 @@ def test_post_onboarding_reports_post_location_when_auto_pin_fails(
         slack_bot_token="xoxb-test",
         lunch_channel_id="C_LUNCH",
         lunch_sheet_url="https://docs.google.com/sheet",
+        candidate_url="http://candidate.internal/suggest",
         leaderboard_url="http://leaderboard.internal:8030/",
     )
     monkeypatch.setattr(__main__, "load_settings", lambda: settings)

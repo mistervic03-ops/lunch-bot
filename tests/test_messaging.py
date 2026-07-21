@@ -89,7 +89,7 @@ def test_shortage_message_keeps_character_but_uses_plain_guidance(
     message = build_daily_message(recommendations)
 
     assert introduction in message
-    assert message.endswith("새로운 후보는 시트에 보태주세요.")
+    assert message.endswith("새로운 후보는 아래 버튼으로 보태주세요.")
     assert "마음이 가는 번호" not in message
 
 
@@ -102,7 +102,7 @@ def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None
         client,
         "C_TEST",
         recommendations,
-        sheet_url="https://docs.google.com/sheet",
+        candidate_url="http://candidate.internal/suggest",
         leaderboard_url="http://leaderboard.internal:8030/",
         connection_test=True,
     )
@@ -131,8 +131,8 @@ def test_post_daily_message_disables_unfurls_and_marks_connection_test() -> None
                             "text": "점심 후보 보태기",
                             "emoji": True,
                         },
-                        "url": "https://docs.google.com/sheet",
-                        "action_id": "open_lunch_sheet",
+                        "url": "http://candidate.internal/suggest",
+                        "action_id": "open_candidate_web",
                     },
                     {
                         "type": "button",
@@ -161,7 +161,7 @@ def test_post_daily_message_rejects_missing_slack_identifiers() -> None:
             client,
             "C_TEST",
             [LunchOption("가게", "메뉴")],
-            sheet_url="https://docs.google.com/sheet",
+            candidate_url="http://candidate.internal/suggest",
             leaderboard_url="http://leaderboard.internal:8030/",
         )
 
@@ -173,7 +173,7 @@ def test_post_channel_onboarding_explains_schedule_reactions_and_sheet() -> None
     post = post_channel_onboarding(
         client,
         "C_TEST",
-        sheet_url="https://docs.google.com/sheet",
+        candidate_url="http://candidate.internal/suggest",
         leaderboard_url="http://leaderboard.internal:8030/",
     )
 
@@ -183,7 +183,7 @@ def test_post_channel_onboarding_explains_schedule_reactions_and_sheet() -> None
     assert "여러 후보를 골라도" in text
     assert "‘밥라투스트라의 전당’" in text
     blocks = client.chat_postMessage.call_args.kwargs["blocks"]
-    assert blocks[1]["elements"][0]["url"] == "https://docs.google.com/sheet"
+    assert blocks[1]["elements"][0]["url"] == "http://candidate.internal/suggest"
     assert blocks[1]["elements"][1] == {
         "type": "button",
         "text": {

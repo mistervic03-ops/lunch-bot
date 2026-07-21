@@ -248,6 +248,38 @@ def read_lunch_option_rows(
     return parse_lunch_option_rows(response.get("values", []))
 
 
+def append_lunch_option(
+    service: Any, spreadsheet_id: str, option: LunchOption
+) -> None:
+    """Append one employee-submitted option without changing existing rows."""
+    response = (
+        service.spreadsheets()
+        .values()
+        .append(
+            spreadsheetId=spreadsheet_id,
+            range=LUNCH_OPTIONS_RANGE,
+            valueInputOption="RAW",
+            insertDataOption="INSERT_ROWS",
+            body={
+                "values": [
+                    [
+                        True,
+                        option.restaurant,
+                        option.menu,
+                        option.price if option.price is not None else "",
+                        option.map_url or "",
+                        option.recommended_by or "",
+                        option.note or "",
+                    ]
+                ]
+            },
+        )
+        .execute()
+    )
+    if response.get("updates", {}).get("updatedRows") != 1:
+        raise RuntimeError("lunch_options append did not add exactly one row")
+
+
 def _log_error(row_number: int, reason: str) -> SheetSchemaError:
     return SheetSchemaError(f"recommendation_log {row_number}행: {reason}")
 

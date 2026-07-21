@@ -316,7 +316,7 @@ def run_daily_job(
             slack_client,
             settings.lunch_channel_id,
             recommendations,
-            sheet_url=settings.lunch_sheet_url,
+            candidate_url=settings.candidate_url,
             leaderboard_url=settings.leaderboard_url,
         )
     except Exception as exc:

@@ -1,24 +1,73 @@
 from pathlib import Path
+from unittest.mock import MagicMock
 
+import pytest
 from fastapi.testclient import TestClient
 
-from bapratustra.alpha_web import create_app
-from bapratustra.config import AlphaSettings
-from bapratustra.database import CandidateDatabase, CandidateInput
+from bapratustra.alpha_web import (
+    CandidateValidationError,
+    create_app,
+    validate_candidate,
+)
+from bapratustra.config import GoogleSheetsSettings
+from bapratustra.recommendation import LunchOption
+from bapratustra.sheets import LUNCH_OPTIONS_HEADERS
 
 
 ORIGIN = {"Origin": "http://testserver"}
 
 
-def _client(tmp_path: Path) -> tuple[TestClient, CandidateDatabase, Path]:
-    database = CandidateDatabase(tmp_path / "alpha.sqlite3")
-    backups = tmp_path / "backups"
-    settings = AlphaSettings(database.path, backups)
-    return TestClient(create_app(settings=settings, database=database)), database, backups
+def _settings() -> GoogleSheetsSettings:
+    return GoogleSheetsSettings("sheet-id", Path("credential.json"))
 
 
-def test_contribution_page_is_simple_and_database_starts_empty(tmp_path: Path) -> None:
-    client, _, _ = _client(tmp_path)
+def _client(rows: list[list[object]]) -> tuple[TestClient, MagicMock]:
+    service = MagicMock()
+    service.spreadsheets.return_value.values.return_value.get.return_value.execute.return_value = {
+        "values": [list(LUNCH_OPTIONS_HEADERS), *rows]
+    }
+    service.spreadsheets.return_value.values.return_value.append.return_value.execute.return_value = {
+        "updates": {"updatedRows": 1}
+    }
+    return (
+        TestClient(create_app(settings=_settings(), service_factory=lambda: service)),
+        service,
+    )
+
+
+def test_candidate_validation_keeps_only_two_required_fields() -> None:
+    option = validate_candidate(
+        {
+            "restaurant": "  가게   이름 ",
+            "menu": " 메뉴 ",
+            "price": "10,000",
+            "map_url": "https://example.com/map",
+            "recommended_by": " 민지 ",
+            "note": " 맵지 않음 ",
+        }
+    )
+
+    assert option == LunchOption(
+        restaurant="가게 이름",
+        menu="메뉴",
+        price=10000,
+        map_url="https://example.com/map",
+        recommended_by="민지",
+        note="맵지 않음",
+    )
+
+
+def test_candidate_validation_returns_field_errors() -> None:
+    with pytest.raises(CandidateValidationError) as exc_info:
+        validate_candidate(
+            {"restaurant": "", "menu": "", "price": "만원", "map_url": "map"}
+        )
+
+    assert set(exc_info.value.errors) == {"restaurant", "menu", "price", "map_url"}
+
+
+def test_contribution_page_is_simple_and_links_to_sheet() -> None:
+    client, _ = _client([])
 
     response = client.get("/suggest")
 
@@ -26,15 +75,12 @@ def test_contribution_page_is_simple_and_database_starts_empty(tmp_path: Path) -
     assert "식당과 메뉴만 적으면 끝입니다" in response.text
     assert 'name="restaurant"' in response.text
     assert 'name="menu"' in response.text
-    assert client.get("/healthz").json() == {
-        "status": "ok",
-        "candidates": 0,
-        "logs": 0,
-    }
+    assert "https://docs.google.com/spreadsheets/d/sheet-id/edit" in response.text
+    assert client.get("/healthz").json() == {"status": "ok"}
 
 
-def test_create_candidate_redirects_without_per_change_backup(tmp_path: Path) -> None:
-    client, database, backups = _client(tmp_path)
+def test_create_candidate_appends_to_sheet_and_redirects() -> None:
+    client, service = _client([])
 
     response = client.post(
         "/suggest",
@@ -44,14 +90,12 @@ def test_create_candidate_redirects_without_per_change_backup(tmp_path: Path) ->
     )
 
     assert response.status_code == 303
-    assert response.headers["location"].endswith("?created=1")
-    assert database.list_candidates()[0].recommended_by == "민지"
-    assert not backups.exists()
+    assert response.headers["location"] == "/suggest?created=1"
+    service.spreadsheets.return_value.values.return_value.append.assert_called_once()
 
 
-def test_validation_and_duplicate_do_not_write_or_backup(tmp_path: Path) -> None:
-    client, database, backups = _client(tmp_path)
-    database.create_candidate(CandidateInput("식당", "메뉴"))
+def test_validation_and_inactive_duplicate_do_not_write() -> None:
+    client, service = _client([[False, "식당", "메뉴"]])
 
     invalid = client.post(
         "/suggest", data={"restaurant": "", "menu": ""}, headers=ORIGIN
@@ -63,39 +107,48 @@ def test_validation_and_duplicate_do_not_write_or_backup(tmp_path: Path) -> None
     assert invalid.status_code == 422
     assert "식당 이름을 입력해주세요" in invalid.text
     assert duplicate.status_code == 409
-    assert "이미 같은 후보가 있습니다" in duplicate.text
-    assert len(database.list_candidates()) == 1
-    assert not backups.exists()
+    assert "현재 추천에서 제외됨" in duplicate.text
+    service.spreadsheets.return_value.values.return_value.append.assert_not_called()
 
 
-def test_edit_and_deactivate_are_recorded_without_undo_controls(tmp_path: Path) -> None:
-    client, database, backups = _client(tmp_path)
-    stored = database.create_candidate(CandidateInput("식당", "메뉴"))
-
-    edited = client.post(
-        f"/options/{stored.id}/edit",
-        data={"restaurant": "식당", "menu": "새 메뉴", "recommended_by": "수정자"},
-        headers=ORIGIN,
-        follow_redirects=False,
+def test_options_page_reads_active_and_inactive_sheet_rows() -> None:
+    client, _ = _client(
+        [
+            [True, "활성 식당", "메뉴", 9000, "https://map.example/place", "민지"],
+            [False, "쉬는 식당", "다른 메뉴"],
+        ]
     )
-    deactivated = client.post(
-        f"/options/{stored.id}/active",
-        data={"active": "0", "actor": "수정자"},
-        headers=ORIGIN,
-        follow_redirects=False,
+
+    response = client.get("/options")
+
+    assert response.status_code == 200
+    assert "활성 식당" in response.text
+    assert "쉬는 식당" in response.text
+    assert "추천 중" in response.text
+    assert "쉬는 중" in response.text
+    assert 'href="https://map.example/place"' in response.text
+    assert "Sheet에서 자세히 수정하기" in response.text
+    assert "살펴보기" not in response.text
+
+
+def test_sheet_failure_returns_friendly_503() -> None:
+    service = MagicMock()
+    service.spreadsheets.return_value.values.return_value.get.return_value.execute.side_effect = RuntimeError(
+        "private"
     )
-    assert edited.status_code == deactivated.status_code == 303
-    assert database.get_candidate(stored.id).active is False
-    assert database.get_candidate(stored.id).menu == "새 메뉴"
-    assert not backups.exists()
-    assert "새 메뉴" in client.get("/options").text
-    changes = client.get("/changes")
-    assert "추천에서 제외" in changes.text
-    assert "되돌리기" not in changes.text
+    client = TestClient(
+        create_app(settings=_settings(), service_factory=lambda: service)
+    )
+
+    response = client.get("/options")
+
+    assert response.status_code == 503
+    assert "후보를 불러올 수 없습니다" in response.text
+    assert "private" not in response.text
 
 
-def test_browser_mutations_require_same_origin(tmp_path: Path) -> None:
-    client, database, _ = _client(tmp_path)
+def test_browser_mutations_require_same_origin() -> None:
+    client, service = _client([])
 
     missing = client.post("/suggest", data={"restaurant": "식당", "menu": "메뉴"})
     foreign = client.post(
@@ -106,4 +159,4 @@ def test_browser_mutations_require_same_origin(tmp_path: Path) -> None:
 
     assert missing.status_code == 403
     assert foreign.status_code == 403
-    assert database.list_candidates() == ()
+    service.spreadsheets.return_value.values.return_value.get.assert_not_called()

@@ -7,6 +7,3 @@ for (const form of forms) {
     if (input.value.trim()) localStorage.setItem("bapratustra-name", input.value.trim());
   });
 }
-for (const input of document.querySelectorAll("[data-actor]")) {
-  input.value = localStorage.getItem("bapratustra-name") || "";
-}

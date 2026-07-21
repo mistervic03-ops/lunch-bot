@@ -10,7 +10,7 @@
 - `architecture/runtime.md`: 기술 스택, 실행 모델, 컴포넌트 경계와 선택 이유를 설명한다.
 - `data/google-sheets.md`: 공동 편집 Google Sheet의 데이터 구조와 관리 규칙을 설명한다.
 - `features/daily-recommendation.md`: 정기 추천의 정상 동작, 메시지 구성과 예외 처리 정책을 설명한다.
-- `features/candidate-management-alpha.md`: 별도 후보 관리 도구의 알파 범위, 데이터 안전장치와 전환 판단 기준을 설명한다.
+- `features/candidate-contribution-web.md`: Sheet를 단일 원본으로 사용하는 후보 간편 등록·검색 웹을 설명한다.
 - `features/leaderboard.md`: 사내 리더보드 웹페이지의 지표, 정렬, 캐시, 접근과 장애 정책을 설명한다.
 - `features/reactions.md`: 후보별 번호 반응, 좋아요 집계와 향후 통계 활용 규칙을 설명한다.
 - `integrations/slack.md`: Slack App Manifest, 최소 권한, 앱 설치, 채널 연결과 담당자 인계를 설명한다.

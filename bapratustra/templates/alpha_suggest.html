@@ -6,11 +6,13 @@
   <p>식당과 메뉴만 적으면 끝입니다. 나머지는 알고 있을 때만 알려주세요.</p>
 </section>
 
+{% if created %}<aside class="notice success">점심 후보를 Sheet에 보탰습니다.</aside>{% endif %}
+{% if service_error %}<aside class="notice warning">지금은 Sheet에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</aside>{% endif %}
 {% if duplicate %}
 <aside class="notice warning">
   <strong>이미 같은 후보가 있습니다.</strong>
-  <span>{{ duplicate.restaurant }} · {{ duplicate.menu }}</span>
-  <a href="/options/{{ duplicate.id }}/edit">기존 후보 확인하기</a>
+  <span>{{ duplicate.option.restaurant }} · {{ duplicate.option.menu }}{% if not duplicate.active %} · 현재 추천에서 제외됨{% endif %}</span>
+  <a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer">Sheet에서 확인하기</a>
 </aside>
 {% endif %}
 
